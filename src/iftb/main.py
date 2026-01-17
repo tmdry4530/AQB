@@ -45,14 +45,27 @@ shutdown_event = asyncio.Event()
 
 def setup_signal_handlers() -> None:
     """Setup graceful shutdown handlers for SIGINT and SIGTERM."""
+    log = get_logger(__name__)
 
-    def signal_handler(signum: int, frame: object) -> None:
-        logger = get_logger(__name__)
-        logger.info("shutdown_signal_received", signal=signal.Signals(signum).name)
+    def handle_shutdown() -> None:
+        log.info("shutdown_signal_received")
         shutdown_event.set()
 
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    try:
+        loop = asyncio.get_running_loop()
+        # Unix: use event loop's signal handler (more reliable with asyncio)
+        for sig in (signal.SIGINT, signal.SIGTERM):
+            loop.add_signal_handler(sig, handle_shutdown)
+        log.debug("signal_handlers_registered", method="asyncio")
+    except (NotImplementedError, RuntimeError):
+        # Windows/fallback: use standard signal module
+        def signal_handler(signum: int, frame: object) -> None:
+            log.info("shutdown_signal_received", signal=signal.Signals(signum).name)
+            shutdown_event.set()
+
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        log.debug("signal_handlers_registered", method="signal")
 
 
 async def initialize_components() -> dict:
