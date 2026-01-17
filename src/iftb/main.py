@@ -307,7 +307,7 @@ async def process_symbol(
         ohlcv_df = ohlcv_bars_to_dataframe(ohlcv_bars)
 
         # 2. Get current ticker for entry price
-        ticker = await fetch_latest_ticker(exchange, symbol)
+        ticker = await exchange.fetch_ticker(symbol)
         current_price = ticker.last if ticker else ohlcv_bars[-1].close
 
         # 3. Generate technical signals
