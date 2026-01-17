@@ -274,9 +274,8 @@ async def process_symbol(
 
     try:
         # 1. Fetch latest OHLCV data
-        exchange = components["exchange"]
-        ohlcv_bars = await fetch_latest_ohlcv(
-            exchange,
+        exchange: ExchangeClient = components["exchange"]
+        ohlcv_bars = await exchange.fetch_ohlcv(
             symbol=symbol,
             timeframe=timeframe,
             limit=100,  # Need 100 bars for indicators
