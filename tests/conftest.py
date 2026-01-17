@@ -21,7 +21,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.core.config import Settings
+from iftb.config import Settings
 
 
 # ============================================================================

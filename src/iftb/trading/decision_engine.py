@@ -397,9 +397,21 @@ class RiskManager:
 # =============================================================================
 
 
+class CircuitBreakerState:
+    """Circuit breaker state enumeration."""
+    CLOSED = "CLOSED"        # Normal operation - all requests allowed
+    OPEN = "OPEN"            # Tripped - all requests blocked
+    HALF_OPEN = "HALF_OPEN"  # Testing - limited requests to test recovery
+
+
 class CircuitBreaker:
     """
     Circuit breaker system to halt trading during adverse conditions.
+
+    States:
+    - CLOSED: Normal operation, trading allowed
+    - OPEN: Trading halted due to adverse conditions
+    - HALF_OPEN: Testing recovery with limited trading (reduced position size)
 
     Monitors:
     - Drawdown from peak equity
@@ -408,19 +420,41 @@ class CircuitBreaker:
     - API failure rate
 
     Automatically triggers trading halt when thresholds are exceeded.
+    Transitions to HALF_OPEN after cooldown to test recovery.
     """
 
     def __init__(self):
-        """Initialize circuit breaker in active state."""
-        self.is_triggered = False
+        """Initialize circuit breaker in CLOSED state."""
+        self._state = CircuitBreakerState.CLOSED
         self.trigger_time: datetime | None = None
         self.trigger_reason: str | None = None
         self.cooldown_hours = 24
+        self.half_open_hours = 4  # Time to test in HALF_OPEN before fully closing
+        self.half_open_start: datetime | None = None
+        self.half_open_success_count = 0
+        self.half_open_failure_count = 0
+        self.half_open_threshold = 3  # Successful trades needed to close
+        self.half_open_max_position_pct = 0.25  # 25% of normal position in HALF_OPEN
         logger.info("circuit_breaker_initialized")
+
+    @property
+    def is_triggered(self) -> bool:
+        """Check if circuit breaker is in OPEN state (fully triggered)."""
+        return self._state == CircuitBreakerState.OPEN
+
+    @property
+    def is_half_open(self) -> bool:
+        """Check if circuit breaker is in HALF_OPEN state."""
+        return self._state == CircuitBreakerState.HALF_OPEN
+
+    @property
+    def state(self) -> str:
+        """Get current circuit breaker state."""
+        return self._state
 
     def check(self, metrics: dict) -> tuple[bool, str]:
         """
-        Check if circuit breaker should be triggered.
+        Check if circuit breaker should be triggered or transition states.
 
         Args:
             metrics: Dictionary with keys:
@@ -431,15 +465,34 @@ class CircuitBreaker:
 
         Returns:
             Tuple of (should_halt, reason)
+            Note: In HALF_OPEN state, returns (False, "HALF_OPEN") to allow limited trading
         """
-        # If already triggered, check cooldown
-        if self.is_triggered:
+        # Handle OPEN state
+        if self._state == CircuitBreakerState.OPEN:
             if self._is_cooldown_complete():
-                logger.info("circuit_breaker_cooldown_complete")
-                self.reset()
+                self._transition_to_half_open()
+                return (False, "HALF_OPEN")  # Allow limited trading for testing
             else:
-                return (True, f"Circuit breaker active: {self.trigger_reason}")
+                return (True, f"Circuit breaker OPEN: {self.trigger_reason}")
 
+        # Handle HALF_OPEN state
+        if self._state == CircuitBreakerState.HALF_OPEN:
+            # Check if conditions improved enough to close
+            if self._should_close_from_half_open():
+                self.reset()
+                logger.info("circuit_breaker_recovered_from_half_open")
+                return (False, "")
+
+            # Check if conditions worsened - return to OPEN
+            if self._should_reopen_from_half_open(metrics):
+                reason = f"Conditions worsened in HALF_OPEN state"
+                self.trigger(reason)
+                return (True, reason)
+
+            # Still in HALF_OPEN - allow limited trading
+            return (False, "HALF_OPEN")
+
+        # CLOSED state - check for trigger conditions
         # Check drawdown
         drawdown = metrics.get("drawdown", 0.0)
         if drawdown >= MAX_DRAWDOWN:
@@ -472,33 +525,130 @@ class CircuitBreaker:
 
     def trigger(self, reason: str):
         """
-        Trigger circuit breaker.
+        Trigger circuit breaker to OPEN state.
 
         Args:
             reason: Reason for triggering
         """
-        self.is_triggered = True
+        self._state = CircuitBreakerState.OPEN
         self.trigger_time = datetime.now(timezone.utc)
         self.trigger_reason = reason
+        self.half_open_start = None
+        self.half_open_success_count = 0
+        self.half_open_failure_count = 0
 
         logger.critical(
             "circuit_breaker_triggered",
             reason=reason,
             trigger_time=self.trigger_time,
             cooldown_hours=self.cooldown_hours,
+            state=self._state,
         )
 
     def reset(self):
-        """Reset circuit breaker to active state."""
+        """Reset circuit breaker to CLOSED state."""
         logger.info(
             "circuit_breaker_reset",
+            previous_state=self._state,
             previous_reason=self.trigger_reason,
             trigger_time=self.trigger_time,
         )
 
-        self.is_triggered = False
+        self._state = CircuitBreakerState.CLOSED
         self.trigger_time = None
         self.trigger_reason = None
+        self.half_open_start = None
+        self.half_open_success_count = 0
+        self.half_open_failure_count = 0
+
+    def _transition_to_half_open(self):
+        """Transition from OPEN to HALF_OPEN state for recovery testing."""
+        self._state = CircuitBreakerState.HALF_OPEN
+        self.half_open_start = datetime.now(timezone.utc)
+        self.half_open_success_count = 0
+        self.half_open_failure_count = 0
+
+        logger.info(
+            "circuit_breaker_half_open",
+            previous_reason=self.trigger_reason,
+            half_open_start=self.half_open_start,
+            max_position_pct=self.half_open_max_position_pct,
+        )
+
+    def record_half_open_result(self, success: bool):
+        """
+        Record the result of a trade during HALF_OPEN state.
+
+        Args:
+            success: True if trade was successful (profitable or small loss)
+        """
+        if self._state != CircuitBreakerState.HALF_OPEN:
+            return
+
+        if success:
+            self.half_open_success_count += 1
+            logger.debug(
+                "circuit_breaker_half_open_success",
+                success_count=self.half_open_success_count,
+                threshold=self.half_open_threshold,
+            )
+        else:
+            self.half_open_failure_count += 1
+            logger.warning(
+                "circuit_breaker_half_open_failure",
+                failure_count=self.half_open_failure_count,
+            )
+
+    def get_position_size_multiplier(self) -> float:
+        """
+        Get position size multiplier based on current state.
+
+        Returns:
+            1.0 for CLOSED (normal), reduced for HALF_OPEN, 0.0 for OPEN
+        """
+        if self._state == CircuitBreakerState.CLOSED:
+            return 1.0
+        elif self._state == CircuitBreakerState.HALF_OPEN:
+            return self.half_open_max_position_pct
+        else:  # OPEN
+            return 0.0
+
+    def _should_close_from_half_open(self) -> bool:
+        """Check if circuit breaker should transition from HALF_OPEN to CLOSED."""
+        if self._state != CircuitBreakerState.HALF_OPEN:
+            return False
+
+        # Need enough successful trades
+        if self.half_open_success_count >= self.half_open_threshold:
+            return True
+
+        # Or spent enough time in HALF_OPEN without failures
+        if self.half_open_start:
+            elapsed = datetime.now(timezone.utc) - self.half_open_start
+            if elapsed >= timedelta(hours=self.half_open_hours) and self.half_open_failure_count == 0:
+                return True
+
+        return False
+
+    def _should_reopen_from_half_open(self, metrics: dict) -> bool:
+        """Check if circuit breaker should transition from HALF_OPEN back to OPEN."""
+        if self._state != CircuitBreakerState.HALF_OPEN:
+            return False
+
+        # Too many failures in HALF_OPEN
+        if self.half_open_failure_count >= 2:
+            return True
+
+        # Conditions severely worsened (use stricter thresholds)
+        drawdown = metrics.get("drawdown", 0.0)
+        if drawdown >= MAX_DRAWDOWN * 0.8:  # 80% of threshold
+            return True
+
+        volatility = metrics.get("volatility", 0.0)
+        if volatility >= 0.12:  # 12% volatility (stricter than CLOSED)
+            return True
+
+        return False
 
     def _is_cooldown_complete(self) -> bool:
         """Check if cooldown period has elapsed."""
@@ -519,7 +669,10 @@ class KillSwitch:
     Emergency kill switch for immediate trading halt.
 
     Can be activated manually or programmatically during critical events.
-    Requires manual deactivation to resume trading.
+    Requires confirmation code to deactivate for additional security.
+
+    The confirmation code is generated upon activation and must be provided
+    to deactivate the kill switch, preventing accidental reactivation.
     """
 
     def __init__(self):
@@ -527,27 +680,95 @@ class KillSwitch:
         self._active = False
         self.activation_time: datetime | None = None
         self.activation_reason: str | None = None
+        self._confirmation_code: str | None = None
+        self._deactivation_attempts = 0
+        self._max_deactivation_attempts = 5
+        self._lockout_until: datetime | None = None
         logger.info("kill_switch_initialized")
 
-    def activate(self, reason: str):
+    def activate(self, reason: str) -> str:
         """
         Activate kill switch.
 
         Args:
             reason: Reason for activation
+
+        Returns:
+            Confirmation code required for deactivation
         """
+        import secrets
+        import hashlib
+
         self._active = True
         self.activation_time = datetime.now(timezone.utc)
         self.activation_reason = reason
+        self._deactivation_attempts = 0
+        self._lockout_until = None
+
+        # Generate secure confirmation code (6 alphanumeric characters)
+        self._confirmation_code = secrets.token_hex(3).upper()
 
         logger.critical(
             "kill_switch_activated",
             reason=reason,
             activation_time=self.activation_time,
+            confirmation_code_hash=hashlib.sha256(
+                self._confirmation_code.encode()
+            ).hexdigest()[:8],  # Log partial hash for audit
         )
 
-    def deactivate(self):
-        """Deactivate kill switch (requires manual action)."""
+        return self._confirmation_code
+
+    def deactivate(self, confirmation_code: str) -> tuple[bool, str]:
+        """
+        Deactivate kill switch with confirmation code verification.
+
+        Args:
+            confirmation_code: The confirmation code provided during activation
+
+        Returns:
+            Tuple of (success, message)
+        """
+        # Check if not active
+        if not self._active:
+            return (False, "Kill switch is not active")
+
+        # Check if locked out due to too many failed attempts
+        if self._lockout_until:
+            if datetime.now(timezone.utc) < self._lockout_until:
+                remaining = (self._lockout_until - datetime.now(timezone.utc)).seconds
+                logger.warning(
+                    "kill_switch_deactivation_locked_out",
+                    remaining_seconds=remaining,
+                )
+                return (False, f"Locked out. Try again in {remaining} seconds")
+            else:
+                # Lockout expired
+                self._lockout_until = None
+                self._deactivation_attempts = 0
+
+        # Verify confirmation code
+        if confirmation_code.upper() != self._confirmation_code:
+            self._deactivation_attempts += 1
+            logger.warning(
+                "kill_switch_deactivation_failed",
+                attempts=self._deactivation_attempts,
+                max_attempts=self._max_deactivation_attempts,
+            )
+
+            # Lockout after too many failed attempts
+            if self._deactivation_attempts >= self._max_deactivation_attempts:
+                self._lockout_until = datetime.now(timezone.utc) + timedelta(minutes=15)
+                logger.error(
+                    "kill_switch_deactivation_locked",
+                    lockout_until=self._lockout_until,
+                )
+                return (False, "Too many failed attempts. Locked for 15 minutes")
+
+            remaining_attempts = self._max_deactivation_attempts - self._deactivation_attempts
+            return (False, f"Invalid confirmation code. {remaining_attempts} attempts remaining")
+
+        # Success - deactivate
         logger.warning(
             "kill_switch_deactivated",
             previous_reason=self.activation_reason,
@@ -558,6 +779,69 @@ class KillSwitch:
         self._active = False
         self.activation_time = None
         self.activation_reason = None
+        self._confirmation_code = None
+        self._deactivation_attempts = 0
+        self._lockout_until = None
+
+        return (True, "Kill switch deactivated successfully")
+
+    def force_deactivate(self, admin_key: str) -> tuple[bool, str]:
+        """
+        Force deactivate kill switch with admin key (bypass confirmation code).
+
+        This should only be used in emergencies when the confirmation code is lost.
+        Requires the KILL_SWITCH_ADMIN_KEY environment variable to be set.
+
+        Args:
+            admin_key: Admin key for force deactivation
+
+        Returns:
+            Tuple of (success, message)
+        """
+        import os
+        import hmac
+
+        expected_key = os.environ.get("KILL_SWITCH_ADMIN_KEY")
+        if not expected_key:
+            logger.error("kill_switch_admin_key_not_configured")
+            return (False, "Admin key not configured")
+
+        # Use constant-time comparison to prevent timing attacks
+        if not hmac.compare_digest(admin_key, expected_key):
+            logger.error("kill_switch_force_deactivation_failed_invalid_key")
+            return (False, "Invalid admin key")
+
+        logger.critical(
+            "kill_switch_force_deactivated",
+            previous_reason=self.activation_reason,
+            activation_time=self.activation_time,
+            force_deactivation_time=datetime.now(timezone.utc),
+        )
+
+        self._active = False
+        self.activation_time = None
+        self.activation_reason = None
+        self._confirmation_code = None
+        self._deactivation_attempts = 0
+        self._lockout_until = None
+
+        return (True, "Kill switch force deactivated with admin key")
+
+    def get_status(self) -> dict:
+        """
+        Get current kill switch status.
+
+        Returns:
+            Dictionary with status information
+        """
+        return {
+            "active": self._active,
+            "activation_time": self.activation_time.isoformat() if self.activation_time else None,
+            "activation_reason": self.activation_reason,
+            "locked_out": self._lockout_until is not None and datetime.now(timezone.utc) < self._lockout_until,
+            "lockout_until": self._lockout_until.isoformat() if self._lockout_until else None,
+            "failed_attempts": self._deactivation_attempts,
+        }
 
     def is_active(self) -> bool:
         """Check if kill switch is currently active."""
@@ -676,6 +960,10 @@ class DecisionEngine:
                 current_price=current_price,
                 timestamp=timestamp,
             )
+
+        # Track if we're in HALF_OPEN mode (reduced position sizing)
+        is_half_open = halt_reason == "HALF_OPEN"
+        position_size_multiplier = self.circuit_breaker.get_position_size_multiplier()
 
         # Check daily loss limit
         if not self.risk_manager.check_daily_loss_limit(current_pnl, account_balance):
@@ -808,11 +1096,23 @@ class DecisionEngine:
         # Adjust size based on confidence
         confidence_adjusted_size = kelly_size * combined_confidence
 
+        # Apply circuit breaker multiplier (reduced in HALF_OPEN state)
+        circuit_adjusted_size = confidence_adjusted_size * position_size_multiplier
+
         # Final position size (respect limits)
         position_size = max(
             MIN_POSITION_PCT,
-            min(confidence_adjusted_size, MAX_POSITION_PCT)
+            min(circuit_adjusted_size, MAX_POSITION_PCT)
         )
+
+        # Log if in HALF_OPEN mode
+        if is_half_open:
+            logger.info(
+                "half_open_position_sizing",
+                original_size=confidence_adjusted_size,
+                multiplier=position_size_multiplier,
+                final_size=position_size,
+            )
 
         # =====================================================================
         # Risk Parameters
