@@ -159,7 +159,8 @@ def filter_sensitive(logger: logging.Logger, method_name: str, event_dict: Event
             return type(data)(recursive_mask(item) for item in data)
         return data
 
-    return recursive_mask(event_dict)
+    result = recursive_mask(event_dict)
+    return result  # type: ignore[return-value]
 
 
 def add_log_level_name(

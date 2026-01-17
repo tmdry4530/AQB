@@ -58,6 +58,8 @@ def event_loop():
 @pytest.fixture
 def test_settings() -> Settings:
     """Override settings for testing environment."""
+    from pydantic import SecretStr
+
     from iftb.config.settings import (
         DatabaseSettings,
         ExchangeSettings,
@@ -66,7 +68,6 @@ def test_settings() -> Settings:
         RedisSettings,
         TradingSettings,
     )
-    from pydantic import SecretStr
 
     return Settings(
         database=DatabaseSettings(

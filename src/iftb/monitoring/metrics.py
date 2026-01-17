@@ -5,6 +5,7 @@ Provides comprehensive metrics collection for monitoring trading performance,
 system health, and operational metrics via Prometheus.
 """
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
@@ -575,7 +576,7 @@ class MetricsManager:
         timeframe: str,
         strength: float,
         confidence: float,
-        indicators: dict,
+        indicators: dict[str, float],
     ) -> None:
         """Record technical analysis signal."""
         TECHNICAL_SIGNAL_STRENGTH.labels(
@@ -720,9 +721,9 @@ class MetricsManager:
     def update_market_sentiment(
         self,
         fear_greed: int | None = None,
-        funding_rate: dict | None = None,
-        open_interest: dict | None = None,
-        long_short_ratio: dict | None = None,
+        funding_rate: dict[str, float] | None = None,
+        open_interest: dict[str, float] | None = None,
+        long_short_ratio: dict[str, float] | None = None,
     ) -> None:
         """Update market sentiment metrics."""
         if fear_greed is not None:
@@ -764,7 +765,9 @@ class MetricsManager:
 
 
 @asynccontextmanager
-async def measure_latency(histogram: Histogram, labels: dict):
+async def measure_latency(
+    histogram: Histogram, labels: dict[str, str]
+) -> AsyncGenerator[None, None]:
     """
     Context manager to measure operation latency.
 
