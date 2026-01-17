@@ -137,6 +137,18 @@ TELEGRAM_NEWS_CHANNEL_IDS=-1001111111111,-1002222222222
 
 > 💡 **팁**: 크립토 뉴스, 시그널 채널 등에 참여한 상태여야 메시지를 수집할 수 있습니다.
 
+#### Bot Token & Chat ID (알림 전송용, 선택)
+
+트레이딩 알림을 받고 싶다면 봇을 생성하세요:
+
+1. [@BotFather](https://t.me/BotFather)에서 `/newbot` 실행
+2. 생성된 봇과 대화 시작
+3. `https://api.telegram.org/bot<TOKEN>/getUpdates`에서 Chat ID 확인
+
+```env
+TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+TELEGRAM_ALERT_CHAT_ID=123456789
+```
 
 ### 4. 데이터베이스 설정
 
@@ -207,6 +219,8 @@ TRADING_PAPER_MODE=true
 | `TELEGRAM_API_ID` | - | 채널 데이터 수집용 |
 | `TELEGRAM_API_HASH` | - | 채널 데이터 수집용 |
 | `TELEGRAM_NEWS_CHANNEL_IDS` | - | 모니터링할 채널 ID |
+| `TELEGRAM_BOT_TOKEN` | - | 알림 전송용 |
+| `TELEGRAM_ALERT_CHAT_ID` | - | 알림 받을 채팅 ID |
 | `TRADING_PAPER_MODE` | ✅ | 모의거래 모드 |
 
 ## Project Structure
