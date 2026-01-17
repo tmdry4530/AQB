@@ -165,7 +165,7 @@ async def initialize_components() -> dict:
     executor = OrderExecutor(
         paper_mode=settings.trading.paper_trading,
         exchange_client=components.get("exchange"),
-        initial_balance=10000.0,  # For paper trading
+        initial_balance=settings.trading.initial_balance,
     )
     components["executor"] = executor
     logger.info(
