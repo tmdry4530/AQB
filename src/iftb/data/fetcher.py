@@ -258,6 +258,10 @@ class ExchangeClient:
         """Async context manager exit."""
         await self.close()
 
+    async def initialize(self) -> None:
+        """Alias for connect() for consistent interface."""
+        await self.connect()
+
     async def connect(self) -> None:
         """
         Initialize connection to exchange.

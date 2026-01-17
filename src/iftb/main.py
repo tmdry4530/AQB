@@ -71,12 +71,14 @@ async def initialize_components() -> dict:
 
     # Initialize database connection
     try:
+        db_url = (
+            f"postgresql+asyncpg://{settings.database.user}:"
+            f"{settings.database.password.get_secret_value()}@"
+            f"{settings.database.host}:{settings.database.port}/"
+            f"{settings.database.name}"
+        )
         db_manager = DatabaseManager(
-            host=settings.database.host,
-            port=settings.database.port,
-            database=settings.database.name,
-            user=settings.database.user,
-            password=settings.database.password.get_secret_value(),
+            database_url=db_url,
             pool_size=settings.database.pool_size,
         )
         await db_manager.connect()

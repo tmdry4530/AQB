@@ -168,6 +168,15 @@ class LLMVetoSystem:
     3. Direction conflict: Block if sentiment conflicts with trade direction
     """
 
+    def __init__(self, analyzer: "LLMAnalyzer | None" = None) -> None:
+        """
+        Initialize veto system with optional LLM analyzer.
+
+        Args:
+            analyzer: Optional LLM analyzer instance for direct analysis
+        """
+        self.analyzer = analyzer
+
     def should_veto_trade(self, analysis: LLMAnalysis, trade_direction: str) -> tuple[bool, str]:
         """
         Determine if a trade should be vetoed based on LLM analysis.
