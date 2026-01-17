@@ -265,7 +265,7 @@ class LLMAnalyzer:
     def __init__(
         self,
         api_key: str,
-        model: str = "claude-sonnet-4-20250514",
+        model: str | None = None,
         max_tokens: int = 1000,
         cache_ttl: int = 300,
         redis_client: RedisClient | None = None,
@@ -280,8 +280,10 @@ class LLMAnalyzer:
             cache_ttl: Cache TTL in seconds
             redis_client: Optional Redis client for caching
         """
+        from iftb.config import get_settings
+
         self.api_key = api_key
-        self.model = model
+        self.model = model if model is not None else get_settings().llm.model
         self.max_tokens = max_tokens
         self.cache_ttl = cache_ttl
 
