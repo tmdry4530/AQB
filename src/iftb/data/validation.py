@@ -8,7 +8,6 @@ outliers, gaps, OHLC integrity violations, and provides automated fixing capabil
 
 from dataclasses import dataclass, field
 from datetime import timedelta
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -124,7 +123,7 @@ class OHLCVValidator:
         logger.info(f"Starting validation of {len(df)} rows")
 
         # Validate input
-        required_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+        required_cols = ["timestamp", "open", "high", "low", "close", "volume"]
         missing_cols = [col for col in required_cols if col not in df.columns]
         if missing_cols:
             raise ValueError(f"Missing required columns: {missing_cols}")
@@ -136,23 +135,23 @@ class OHLCVValidator:
         df = df.copy()
 
         # Ensure timestamp is datetime
-        if not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
+        if not pd.api.types.is_datetime64_any_dtype(df["timestamp"]):
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
 
         # Sort by timestamp
-        df = df.sort_values('timestamp').reset_index(drop=True)
+        df = df.sort_values("timestamp").reset_index(drop=True)
 
         issues = []
         total_rows = len(df)
 
         # Check for duplicate timestamps
-        duplicate_timestamps = df['timestamp'].duplicated().sum()
+        duplicate_timestamps = df["timestamp"].duplicated().sum()
         if duplicate_timestamps > 0:
             issues.append(f"Found {duplicate_timestamps} duplicate timestamps")
             logger.warning(f"Detected {duplicate_timestamps} duplicate timestamps")
 
         # Detect expected interval (most common time difference)
-        time_diffs = df['timestamp'].diff().dropna()
+        time_diffs = df["timestamp"].diff().dropna()
         if len(time_diffs) > 0:
             mode_interval = time_diffs.mode()
             expected_interval = mode_interval[0] if not mode_interval.empty else time_diffs.median()
@@ -232,7 +231,7 @@ class OHLCVValidator:
         if len(df) < 2:
             return 0
 
-        time_diffs = df['timestamp'].diff().dropna()
+        time_diffs = df["timestamp"].diff().dropna()
 
         # Allow 10% tolerance for interval matching
         tolerance = expected_interval * 0.1
@@ -262,25 +261,25 @@ class OHLCVValidator:
         violations = 0
 
         # High must be >= Low
-        violations += (df['high'] < df['low']).sum()
+        violations += (df["high"] < df["low"]).sum()
 
         # High must be >= Open
-        violations += (df['high'] < df['open']).sum()
+        violations += (df["high"] < df["open"]).sum()
 
         # High must be >= Close
-        violations += (df['high'] < df['close']).sum()
+        violations += (df["high"] < df["close"]).sum()
 
         # Low must be <= Open
-        violations += (df['low'] > df['open']).sum()
+        violations += (df["low"] > df["open"]).sum()
 
         # Low must be <= Close
-        violations += (df['low'] > df['close']).sum()
+        violations += (df["low"] > df["close"]).sum()
 
         # Volume must be non-negative
-        violations += (df['volume'] < 0).sum()
+        violations += (df["volume"] < 0).sum()
 
         # Check for NaN values
-        violations += df[['open', 'high', 'low', 'close', 'volume']].isna().sum().sum()
+        violations += df[["open", "high", "low", "close", "volume"]].isna().sum().sum()
 
         return int(violations)
 
@@ -300,20 +299,20 @@ class OHLCVValidator:
         outliers = 0
 
         # Z-score based outlier detection for prices
-        for col in ['open', 'high', 'low', 'close']:
+        for col in ["open", "high", "low", "close"]:
             if df[col].std() > 0:  # Avoid division by zero
-                z_scores = np.abs(stats.zscore(df[col], nan_policy='omit'))
+                z_scores = np.abs(stats.zscore(df[col], nan_policy="omit"))
                 outliers += (z_scores > self.outlier_zscore_threshold).sum()
 
         # Sudden change detection (price jumps)
-        df['price_change'] = df['close'].pct_change().abs()
-        sudden_changes = (df['price_change'] > self.max_single_candle_change).sum()
+        df["price_change"] = df["close"].pct_change().abs()
+        sudden_changes = (df["price_change"] > self.max_single_candle_change).sum()
         outliers += sudden_changes
 
         # Volume outliers (extreme volume spikes)
-        median_volume = df['volume'].median()
+        median_volume = df["volume"].median()
         if median_volume > 0:
-            volume_outliers = (df['volume'] > median_volume * self.volume_outlier_multiplier).sum()
+            volume_outliers = (df["volume"] > median_volume * self.volume_outlier_multiplier).sum()
             outliers += volume_outliers
 
         return int(outliers)
@@ -336,10 +335,10 @@ class OHLCVValidator:
             return 0
 
         # Calculate gap between close[i] and open[i+1]
-        df['next_open'] = df['open'].shift(-1)
-        df['gap'] = ((df['next_open'] - df['close']) / df['close']).abs()
+        df["next_open"] = df["open"].shift(-1)
+        df["gap"] = ((df["next_open"] - df["close"]) / df["close"]).abs()
 
-        gaps = (df['gap'] > gap_threshold).sum()
+        gaps = (df["gap"] > gap_threshold).sum()
 
         return int(gaps)
 
@@ -365,37 +364,37 @@ class OHLCVValidator:
         df = df.copy()
 
         # Ensure timestamp is datetime
-        if not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
+        if not pd.api.types.is_datetime64_any_dtype(df["timestamp"]):
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
 
         # Sort by timestamp
-        df = df.sort_values('timestamp').reset_index(drop=True)
+        df = df.sort_values("timestamp").reset_index(drop=True)
 
         # 1. Remove duplicates (keep first)
         original_len = len(df)
-        df = df.drop_duplicates(subset='timestamp', keep='first')
+        df = df.drop_duplicates(subset="timestamp", keep="first")
         removed = original_len - len(df)
         if removed > 0:
             logger.info(f"Removed {removed} duplicate timestamps")
 
         # 2. Fix OHLC integrity violations
         # Ensure High is the maximum
-        df['high'] = df[['open', 'high', 'low', 'close']].max(axis=1)
+        df["high"] = df[["open", "high", "low", "close"]].max(axis=1)
 
         # Ensure Low is the minimum
-        df['low'] = df[['open', 'high', 'low', 'close']].min(axis=1)
+        df["low"] = df[["open", "high", "low", "close"]].min(axis=1)
 
         # Ensure non-negative volume
-        df['volume'] = df['volume'].clip(lower=0)
+        df["volume"] = df["volume"].clip(lower=0)
 
         # Fill NaN values with forward fill, then backward fill
-        ohlcv_cols = ['open', 'high', 'low', 'close', 'volume']
+        ohlcv_cols = ["open", "high", "low", "close", "volume"]
         df[ohlcv_cols] = df[ohlcv_cols].ffill().bfill()
 
         logger.info("Fixed OHLC integrity violations")
 
         # 3. Clip extreme outliers (±3 standard deviations)
-        for col in ['open', 'high', 'low', 'close']:
+        for col in ["open", "high", "low", "close"]:
             mean = df[col].mean()
             std = df[col].std()
             if std > 0:
@@ -409,24 +408,24 @@ class OHLCVValidator:
 
         # 4. Interpolate missing candles
         # Detect expected interval
-        time_diffs = df['timestamp'].diff().dropna()
+        time_diffs = df["timestamp"].diff().dropna()
         if len(time_diffs) > 0:
             mode_interval = time_diffs.mode()
             expected_interval = mode_interval[0] if not mode_interval.empty else time_diffs.median()
 
             # Create complete time range
-            start_time = df['timestamp'].min()
-            end_time = df['timestamp'].max()
+            start_time = df["timestamp"].min()
+            end_time = df["timestamp"].max()
             complete_range = pd.date_range(start=start_time, end=end_time, freq=expected_interval)
 
             # Reindex to complete range
-            df = df.set_index('timestamp')
+            df = df.set_index("timestamp")
             df = df.reindex(complete_range)
 
             # Interpolate missing values
             original_na = df.isna().sum().sum()
-            ohlcv_cols = ['open', 'high', 'low', 'close', 'volume']
-            df[ohlcv_cols] = df[ohlcv_cols].interpolate(method='linear')
+            ohlcv_cols = ["open", "high", "low", "close", "volume"]
+            df[ohlcv_cols] = df[ohlcv_cols].interpolate(method="linear")
             df = df.ffill().bfill()  # Fill any remaining NaN at edges
             filled = original_na - df.isna().sum().sum()
             if filled > 0:
@@ -434,7 +433,7 @@ class OHLCVValidator:
 
             # Reset index
             df = df.reset_index()
-            df.rename(columns={'index': 'timestamp'}, inplace=True)
+            df.rename(columns={"index": "timestamp"}, inplace=True)
 
         logger.info(f"Automatic fixes complete. Final row count: {len(df)}")
 
@@ -459,48 +458,48 @@ def calculate_data_statistics(df: pd.DataFrame) -> dict:
     Raises:
         ValueError: If required columns are missing
     """
-    required_cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume']
+    required_cols = ["timestamp", "open", "high", "low", "close", "volume"]
     missing_cols = [col for col in required_cols if col not in df.columns]
     if missing_cols:
         raise ValueError(f"Missing required columns: {missing_cols}")
 
     if df.empty:
         return {
-            'row_count': 0,
-            'time_range': (None, None),
-            'price_stats': {},
-            'volume_stats': {},
-            'completeness': 0.0
+            "row_count": 0,
+            "time_range": (None, None),
+            "price_stats": {},
+            "volume_stats": {},
+            "completeness": 0.0
         }
 
     # Ensure timestamp is datetime
     df_copy = df.copy()
-    if not pd.api.types.is_datetime64_any_dtype(df_copy['timestamp']):
-        df_copy['timestamp'] = pd.to_datetime(df_copy['timestamp'])
+    if not pd.api.types.is_datetime64_any_dtype(df_copy["timestamp"]):
+        df_copy["timestamp"] = pd.to_datetime(df_copy["timestamp"])
 
     # Calculate statistics for price columns
     price_stats = {}
-    for col in ['open', 'high', 'low', 'close']:
+    for col in ["open", "high", "low", "close"]:
         price_stats[col] = {
-            'mean': float(df_copy[col].mean()),
-            'std': float(df_copy[col].std()),
-            'min': float(df_copy[col].min()),
-            'max': float(df_copy[col].max()),
-            'median': float(df_copy[col].median()),
-            'q25': float(df_copy[col].quantile(0.25)),
-            'q75': float(df_copy[col].quantile(0.75))
+            "mean": float(df_copy[col].mean()),
+            "std": float(df_copy[col].std()),
+            "min": float(df_copy[col].min()),
+            "max": float(df_copy[col].max()),
+            "median": float(df_copy[col].median()),
+            "q25": float(df_copy[col].quantile(0.25)),
+            "q75": float(df_copy[col].quantile(0.75))
         }
 
     # Calculate volume statistics
     volume_stats = {
-        'mean': float(df_copy['volume'].mean()),
-        'std': float(df_copy['volume'].std()),
-        'min': float(df_copy['volume'].min()),
-        'max': float(df_copy['volume'].max()),
-        'median': float(df_copy['volume'].median()),
-        'total': float(df_copy['volume'].sum()),
-        'q25': float(df_copy['volume'].quantile(0.25)),
-        'q75': float(df_copy['volume'].quantile(0.75))
+        "mean": float(df_copy["volume"].mean()),
+        "std": float(df_copy["volume"].std()),
+        "min": float(df_copy["volume"].min()),
+        "max": float(df_copy["volume"].max()),
+        "median": float(df_copy["volume"].median()),
+        "total": float(df_copy["volume"].sum()),
+        "q25": float(df_copy["volume"].quantile(0.25)),
+        "q75": float(df_copy["volume"].quantile(0.75))
     }
 
     # Calculate completeness (percentage of non-null values)
@@ -510,26 +509,26 @@ def calculate_data_statistics(df: pd.DataFrame) -> dict:
 
     # Time range
     time_range = (
-        df_copy['timestamp'].min().isoformat() if pd.notna(df_copy['timestamp'].min()) else None,
-        df_copy['timestamp'].max().isoformat() if pd.notna(df_copy['timestamp'].max()) else None
+        df_copy["timestamp"].min().isoformat() if pd.notna(df_copy["timestamp"].min()) else None,
+        df_copy["timestamp"].max().isoformat() if pd.notna(df_copy["timestamp"].max()) else None
     )
 
     # Calculate time interval statistics
-    time_diffs = df_copy['timestamp'].diff().dropna()
+    time_diffs = df_copy["timestamp"].diff().dropna()
     interval_stats = {}
     if len(time_diffs) > 0:
         interval_stats = {
-            'mean_seconds': time_diffs.mean().total_seconds(),
-            'median_seconds': time_diffs.median().total_seconds(),
-            'min_seconds': time_diffs.min().total_seconds(),
-            'max_seconds': time_diffs.max().total_seconds()
+            "mean_seconds": time_diffs.mean().total_seconds(),
+            "median_seconds": time_diffs.median().total_seconds(),
+            "min_seconds": time_diffs.min().total_seconds(),
+            "max_seconds": time_diffs.max().total_seconds()
         }
 
     return {
-        'row_count': len(df_copy),
-        'time_range': time_range,
-        'price_stats': price_stats,
-        'volume_stats': volume_stats,
-        'completeness': float(completeness),
-        'interval_stats': interval_stats
+        "row_count": len(df_copy),
+        "time_range": time_range,
+        "price_stats": price_stats,
+        "volume_stats": volume_stats,
+        "completeness": float(completeness),
+        "interval_stats": interval_stats
     }

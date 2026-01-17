@@ -22,15 +22,14 @@ Example Usage:
     ```
 """
 
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Any, Optional, AsyncGenerator
 
 from sqlalchemy import (
     BigInteger,
-    Boolean,
     CheckConstraint,
     Column,
     Date,
@@ -42,10 +41,8 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     and_,
-    delete,
     desc,
     func,
-    or_,
     select,
     update,
 )
@@ -58,7 +55,6 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import declarative_base
 
-from iftb.config import get_settings
 from iftb.utils import get_logger
 
 logger = get_logger(__name__)
@@ -90,10 +86,10 @@ class OHLCVBar:
     low: Decimal
     close: Decimal
     volume: Decimal
-    quote_volume: Optional[Decimal] = None
-    trades_count: Optional[int] = None
-    id: Optional[int] = None
-    created_at: Optional[datetime] = None
+    quote_volume: Decimal | None = None
+    trades_count: int | None = None
+    id: int | None = None
+    created_at: datetime | None = None
 
 
 @dataclass
@@ -109,23 +105,23 @@ class Trade:
     quantity: Decimal
     entry_time: datetime
     leverage: Decimal = Decimal("1.0")
-    exit_price: Optional[Decimal] = None
-    exit_time: Optional[datetime] = None
-    realized_pnl: Optional[Decimal] = None
-    realized_pnl_pct: Optional[Decimal] = None
+    exit_price: Decimal | None = None
+    exit_time: datetime | None = None
+    realized_pnl: Decimal | None = None
+    realized_pnl_pct: Decimal | None = None
     fee: Decimal = Decimal("0")
-    signal_score: Optional[Decimal] = None
-    technical_score: Optional[Decimal] = None
-    llm_score: Optional[Decimal] = None
-    xgb_confidence: Optional[Decimal] = None
-    stop_loss: Optional[Decimal] = None
-    take_profit: Optional[Decimal] = None
-    position_size_pct: Optional[Decimal] = None
-    decision_reasons: Optional[dict] = None
-    llm_analysis: Optional[dict] = None
-    id: Optional[int] = None
-    created_at: Optional[datetime] = None
-    updated_at: Optional[datetime] = None
+    signal_score: Decimal | None = None
+    technical_score: Decimal | None = None
+    llm_score: Decimal | None = None
+    xgb_confidence: Decimal | None = None
+    stop_loss: Decimal | None = None
+    take_profit: Decimal | None = None
+    position_size_pct: Decimal | None = None
+    decision_reasons: dict | None = None
+    llm_analysis: dict | None = None
+    id: int | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
 
 
 @dataclass
@@ -140,18 +136,18 @@ class Position:
     margin: Decimal
     entry_time: datetime
     leverage: Decimal = Decimal("1.0")
-    current_price: Optional[Decimal] = None
-    unrealized_pnl: Optional[Decimal] = None
-    unrealized_pnl_pct: Optional[Decimal] = None
-    liquidation_price: Optional[Decimal] = None
-    stop_loss: Optional[Decimal] = None
-    take_profit: Optional[Decimal] = None
-    trailing_stop: Optional[Decimal] = None
+    current_price: Decimal | None = None
+    unrealized_pnl: Decimal | None = None
+    unrealized_pnl_pct: Decimal | None = None
+    liquidation_price: Decimal | None = None
+    stop_loss: Decimal | None = None
+    take_profit: Decimal | None = None
+    trailing_stop: Decimal | None = None
     status: str = "open"  # 'open', 'closed', 'liquidated'
-    trade_id: Optional[str] = None
-    id: Optional[int] = None
-    last_updated: Optional[datetime] = None
-    created_at: Optional[datetime] = None
+    trade_id: str | None = None
+    id: int | None = None
+    last_updated: datetime | None = None
+    created_at: datetime | None = None
 
 
 @dataclass
@@ -161,14 +157,14 @@ class SystemEvent:
     event_type: str
     severity: str  # 'debug', 'info', 'warning', 'error', 'critical'
     message: str
-    details: Optional[dict] = None
-    symbol: Optional[str] = None
-    exchange: Optional[str] = None
-    trade_id: Optional[str] = None
-    position_id: Optional[int] = None
-    stack_trace: Optional[str] = None
-    id: Optional[int] = None
-    created_at: Optional[datetime] = None
+    details: dict | None = None
+    symbol: str | None = None
+    exchange: str | None = None
+    trade_id: str | None = None
+    position_id: int | None = None
+    stack_trace: str | None = None
+    id: int | None = None
+    created_at: datetime | None = None
 
 
 @dataclass
@@ -187,7 +183,7 @@ class TradeStatistics:
     avg_loss: Decimal
     largest_win: Decimal
     largest_loss: Decimal
-    profit_factor: Optional[Decimal] = None
+    profit_factor: Decimal | None = None
 
 
 # ============================================================================
@@ -468,8 +464,8 @@ class DatabaseManager:
         self.pool_size = pool_size
         self.max_overflow = max_overflow
         self.echo = echo
-        self._engine: Optional[AsyncEngine] = None
-        self._session_maker: Optional[async_sessionmaker] = None
+        self._engine: AsyncEngine | None = None
+        self._session_maker: async_sessionmaker | None = None
         logger.debug(
             "database_manager_initialized",
             pool_size=pool_size,
@@ -954,7 +950,7 @@ class TradeRepository(BaseRepository):
 
         logger.debug("trade_updated", trade_id=trade_id, fields=list(kwargs.keys()))
 
-    async def get_by_id(self, trade_id: int) -> Optional[Trade]:
+    async def get_by_id(self, trade_id: int) -> Trade | None:
         """
         Get trade by database ID.
 
@@ -1182,7 +1178,7 @@ class PositionRepository(BaseRepository):
         self,
         symbol: str,
         exchange: str = "binance",
-    ) -> Optional[Position]:
+    ) -> Position | None:
         """
         Get open position for a symbol.
 
@@ -1320,12 +1316,12 @@ class SystemEventRepository(BaseRepository):
         event_type: str,
         severity: str,
         message: str,
-        details: Optional[dict] = None,
-        symbol: Optional[str] = None,
-        exchange: Optional[str] = None,
-        trade_id: Optional[str] = None,
-        position_id: Optional[int] = None,
-        stack_trace: Optional[str] = None,
+        details: dict | None = None,
+        symbol: str | None = None,
+        exchange: str | None = None,
+        trade_id: str | None = None,
+        position_id: int | None = None,
+        stack_trace: str | None = None,
     ) -> None:
         """
         Log a system event.
@@ -1364,7 +1360,7 @@ class SystemEventRepository(BaseRepository):
 
     async def get_recent_events(
         self,
-        severity: Optional[str] = None,
+        severity: str | None = None,
         limit: int = 100,
     ) -> list[SystemEvent]:
         """

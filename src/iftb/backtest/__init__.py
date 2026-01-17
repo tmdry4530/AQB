@@ -49,9 +49,9 @@ __all__ = [
     "BacktestConfig",
     "BacktestEngine",
     "BacktestMetrics",
+    "BacktestReporter",
     "BacktestResult",
     "BacktestTrade",
-    "BacktestReporter",
     "MonteCarloSimulator",
     "WalkForwardOptimizer",
 ]

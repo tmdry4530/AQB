@@ -19,9 +19,8 @@ The engine serves as the final decision layer, combining all analysis sources
 with strict risk management to generate executable trading decisions.
 """
 
-import math
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Literal
 
 from iftb.analysis import CompositeSignal, LLMAnalysis, ModelPrediction
@@ -29,7 +28,6 @@ from iftb.config import get_settings
 from iftb.config.constants import (
     CONFIDENCE_VETO_THRESHOLD,
     CONSECUTIVE_LOSS_LIMIT,
-    DEFAULT_LEVERAGE,
     HIGH_CONFIDENCE_LEVERAGE,
     KELLY_FRACTION,
     MAX_DAILY_LOSS_PCT,
@@ -472,8 +470,7 @@ class CircuitBreaker:
             if self._is_cooldown_complete():
                 self._transition_to_half_open()
                 return (False, "HALF_OPEN")  # Allow limited trading for testing
-            else:
-                return (True, f"Circuit breaker OPEN: {self.trigger_reason}")
+            return (True, f"Circuit breaker OPEN: {self.trigger_reason}")
 
         # Handle HALF_OPEN state
         if self._state == CircuitBreakerState.HALF_OPEN:
@@ -485,7 +482,7 @@ class CircuitBreaker:
 
             # Check if conditions worsened - return to OPEN
             if self._should_reopen_from_half_open(metrics):
-                reason = f"Conditions worsened in HALF_OPEN state"
+                reason = "Conditions worsened in HALF_OPEN state"
                 self.trigger(reason)
                 return (True, reason)
 
@@ -531,7 +528,7 @@ class CircuitBreaker:
             reason: Reason for triggering
         """
         self._state = CircuitBreakerState.OPEN
-        self.trigger_time = datetime.now(timezone.utc)
+        self.trigger_time = datetime.now(UTC)
         self.trigger_reason = reason
         self.half_open_start = None
         self.half_open_success_count = 0
@@ -564,7 +561,7 @@ class CircuitBreaker:
     def _transition_to_half_open(self):
         """Transition from OPEN to HALF_OPEN state for recovery testing."""
         self._state = CircuitBreakerState.HALF_OPEN
-        self.half_open_start = datetime.now(timezone.utc)
+        self.half_open_start = datetime.now(UTC)
         self.half_open_success_count = 0
         self.half_open_failure_count = 0
 
@@ -608,10 +605,10 @@ class CircuitBreaker:
         """
         if self._state == CircuitBreakerState.CLOSED:
             return 1.0
-        elif self._state == CircuitBreakerState.HALF_OPEN:
+        if self._state == CircuitBreakerState.HALF_OPEN:
             return self.half_open_max_position_pct
-        else:  # OPEN
-            return 0.0
+        # OPEN
+        return 0.0
 
     def _should_close_from_half_open(self) -> bool:
         """Check if circuit breaker should transition from HALF_OPEN to CLOSED."""
@@ -624,7 +621,7 @@ class CircuitBreaker:
 
         # Or spent enough time in HALF_OPEN without failures
         if self.half_open_start:
-            elapsed = datetime.now(timezone.utc) - self.half_open_start
+            elapsed = datetime.now(UTC) - self.half_open_start
             if elapsed >= timedelta(hours=self.half_open_hours) and self.half_open_failure_count == 0:
                 return True
 
@@ -655,7 +652,7 @@ class CircuitBreaker:
         if not self.trigger_time:
             return True
 
-        elapsed = datetime.now(timezone.utc) - self.trigger_time
+        elapsed = datetime.now(UTC) - self.trigger_time
         return elapsed >= timedelta(hours=self.cooldown_hours)
 
 
@@ -696,11 +693,11 @@ class KillSwitch:
         Returns:
             Confirmation code required for deactivation
         """
-        import secrets
         import hashlib
+        import secrets
 
         self._active = True
-        self.activation_time = datetime.now(timezone.utc)
+        self.activation_time = datetime.now(UTC)
         self.activation_reason = reason
         self._deactivation_attempts = 0
         self._lockout_until = None
@@ -735,17 +732,16 @@ class KillSwitch:
 
         # Check if locked out due to too many failed attempts
         if self._lockout_until:
-            if datetime.now(timezone.utc) < self._lockout_until:
-                remaining = (self._lockout_until - datetime.now(timezone.utc)).seconds
+            if datetime.now(UTC) < self._lockout_until:
+                remaining = (self._lockout_until - datetime.now(UTC)).seconds
                 logger.warning(
                     "kill_switch_deactivation_locked_out",
                     remaining_seconds=remaining,
                 )
                 return (False, f"Locked out. Try again in {remaining} seconds")
-            else:
-                # Lockout expired
-                self._lockout_until = None
-                self._deactivation_attempts = 0
+            # Lockout expired
+            self._lockout_until = None
+            self._deactivation_attempts = 0
 
         # Verify confirmation code
         if confirmation_code.upper() != self._confirmation_code:
@@ -758,7 +754,7 @@ class KillSwitch:
 
             # Lockout after too many failed attempts
             if self._deactivation_attempts >= self._max_deactivation_attempts:
-                self._lockout_until = datetime.now(timezone.utc) + timedelta(minutes=15)
+                self._lockout_until = datetime.now(UTC) + timedelta(minutes=15)
                 logger.error(
                     "kill_switch_deactivation_locked",
                     lockout_until=self._lockout_until,
@@ -773,7 +769,7 @@ class KillSwitch:
             "kill_switch_deactivated",
             previous_reason=self.activation_reason,
             activation_time=self.activation_time,
-            deactivation_time=datetime.now(timezone.utc),
+            deactivation_time=datetime.now(UTC),
         )
 
         self._active = False
@@ -798,8 +794,8 @@ class KillSwitch:
         Returns:
             Tuple of (success, message)
         """
-        import os
         import hmac
+        import os
 
         expected_key = os.environ.get("KILL_SWITCH_ADMIN_KEY")
         if not expected_key:
@@ -815,7 +811,7 @@ class KillSwitch:
             "kill_switch_force_deactivated",
             previous_reason=self.activation_reason,
             activation_time=self.activation_time,
-            force_deactivation_time=datetime.now(timezone.utc),
+            force_deactivation_time=datetime.now(UTC),
         )
 
         self._active = False
@@ -838,7 +834,7 @@ class KillSwitch:
             "active": self._active,
             "activation_time": self.activation_time.isoformat() if self.activation_time else None,
             "activation_reason": self.activation_reason,
-            "locked_out": self._lockout_until is not None and datetime.now(timezone.utc) < self._lockout_until,
+            "locked_out": self._lockout_until is not None and datetime.now(UTC) < self._lockout_until,
             "lockout_until": self._lockout_until.isoformat() if self._lockout_until else None,
             "failed_attempts": self._deactivation_attempts,
         }
@@ -925,7 +921,7 @@ class DecisionEngine:
         Returns:
             TradingDecision with action, sizing, and risk parameters
         """
-        timestamp = datetime.now(timezone.utc)
+        timestamp = datetime.now(UTC)
         trade_history = trade_history or []
 
         logger.info(
@@ -978,7 +974,7 @@ class DecisionEngine:
         if not self.risk_manager.check_consecutive_losses(trade_history):
             return self._create_vetoed_decision(
                 symbol=symbol,
-                reason=f"Consecutive loss limit exceeded",
+                reason="Consecutive loss limit exceeded",
                 current_price=current_price,
                 timestamp=timestamp,
             )
@@ -1197,19 +1193,17 @@ class DecisionEngine:
         """Convert signal enum to numeric score."""
         if signal == "BULLISH":
             return 1.0
-        elif signal == "BEARISH":
+        if signal == "BEARISH":
             return -1.0
-        else:
-            return 0.0
+        return 0.0
 
     def _prediction_to_score(self, action: Literal["LONG", "SHORT", "HOLD"]) -> float:
         """Convert ML prediction to numeric score."""
         if action == "LONG":
             return 1.0
-        elif action == "SHORT":
+        if action == "SHORT":
             return -1.0
-        else:
-            return 0.0
+        return 0.0
 
     def _signals_aligned(self, signals: list[float], threshold: float = 0.6) -> bool:
         """

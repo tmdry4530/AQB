@@ -29,12 +29,12 @@ Example Usage:
 """
 
 import asyncio
-import re
 from collections import deque
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+import re
 from threading import Lock
-from typing import Awaitable, Callable, Optional
 
 from pyrogram import Client, filters
 from pyrogram.errors import FloodWait
@@ -42,7 +42,6 @@ from pyrogram.types import Message
 
 from iftb.config import get_settings
 from iftb.utils import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -135,7 +134,7 @@ class TelegramNewsCollector:
         api_id: int,
         api_hash: str,
         channel_ids: list[int],
-        on_urgent_message: Optional[Callable[[NewsMessage], Awaitable[None]]] = None,
+        on_urgent_message: Callable[[NewsMessage], Awaitable[None]] | None = None,
         max_queue_size: int = 200,
     ) -> None:
         """Initialize the Telegram news collector.
@@ -157,7 +156,7 @@ class TelegramNewsCollector:
         self._lock = Lock()
 
         # Pyrogram client
-        self._client: Optional[Client] = None
+        self._client: Client | None = None
         self._is_running = False
         self._reconnect_delay = 5
         self._max_reconnect_delay = 300
@@ -326,7 +325,7 @@ class TelegramNewsCollector:
                 message_id=message.id if message else None,
             )
 
-    def _parse_message(self, message: Message) -> Optional[NewsMessage]:
+    def _parse_message(self, message: Message) -> NewsMessage | None:
         """Parse Telegram message into NewsMessage.
 
         Args:
@@ -363,7 +362,7 @@ class TelegramNewsCollector:
 
         # Create NewsMessage
         news_message = NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text=text,
             channel=channel_name,
             channel_id=channel_id,
@@ -413,7 +412,7 @@ class TelegramNewsCollector:
         Returns:
             List of NewsMessage objects from the specified time window
         """
-        cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=minutes)
 
         with self._lock:
             recent = [
@@ -509,7 +508,7 @@ class TelegramNewsCollector:
 
 
 async def create_collector_from_settings(
-    on_urgent_message: Optional[Callable[[NewsMessage], Awaitable[None]]] = None,
+    on_urgent_message: Callable[[NewsMessage], Awaitable[None]] | None = None,
 ) -> TelegramNewsCollector:
     """Create a TelegramNewsCollector from application settings.
 

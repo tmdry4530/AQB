@@ -23,8 +23,7 @@ Example Usage:
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 import httpx
 
@@ -121,11 +120,11 @@ class MarketContext:
         fetch_time: Timestamp when data was fetched
         errors: List of errors encountered during fetching
     """
-    fear_greed: Optional[FearGreedData] = None
-    funding: Optional[FundingData] = None
-    open_interest: Optional[OpenInterestData] = None
-    long_short: Optional[LongShortData] = None
-    fetch_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    fear_greed: FearGreedData | None = None
+    funding: FundingData | None = None
+    open_interest: OpenInterestData | None = None
+    long_short: LongShortData | None = None
+    fetch_time: datetime = field(default_factory=lambda: datetime.now(UTC))
     errors: list[str] = field(default_factory=list)
 
 
@@ -146,7 +145,7 @@ class FearGreedClient:
             timeout: HTTP request timeout in seconds
         """
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client.
@@ -190,7 +189,7 @@ class FearGreedClient:
         try:
             value = int(data["value"])
             classification = data["value_classification"]
-            timestamp = datetime.fromtimestamp(int(data["timestamp"]), tz=timezone.utc)
+            timestamp = datetime.fromtimestamp(int(data["timestamp"]), tz=UTC)
 
             return FearGreedData(
                 value=value,
@@ -282,7 +281,7 @@ class CoinglassClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: str | None = None,
         timeout: float = TIMEOUT,
     ) -> None:
         """Initialize Coinglass client.
@@ -293,7 +292,7 @@ class CoinglassClient:
         """
         self.api_key = api_key
         self.timeout = timeout
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
     async def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client.
@@ -365,7 +364,7 @@ class CoinglassClient:
             predicted_rate=float(data.get("predictedRate", 0.0)),
             next_funding_time=datetime.fromtimestamp(
                 int(data.get("nextFundingTime", 0)),
-                tz=timezone.utc,
+                tz=UTC,
             ),
         )
 
@@ -456,7 +455,7 @@ class CoinglassClient:
             symbol=symbol,
             long_ratio=float(data.get("longRatio", 0.5)),
             short_ratio=float(data.get("shortRatio", 0.5)),
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
         logger.info(
@@ -482,8 +481,8 @@ class ExternalDataAggregator:
 
     def __init__(
         self,
-        fear_greed_client: Optional[FearGreedClient] = None,
-        coinglass_client: Optional[CoinglassClient] = None,
+        fear_greed_client: FearGreedClient | None = None,
+        coinglass_client: CoinglassClient | None = None,
         cache_ttl: int = DEFAULT_TTL,
     ) -> None:
         """Initialize external data aggregator.
@@ -497,8 +496,8 @@ class ExternalDataAggregator:
         self.coinglass_client = coinglass_client or CoinglassClient()
         self.cache_ttl = cache_ttl
 
-        self._cache: Optional[MarketContext] = None
-        self._cache_time: Optional[datetime] = None
+        self._cache: MarketContext | None = None
+        self._cache_time: datetime | None = None
 
     async def close(self) -> None:
         """Close all clients and cleanup resources."""
@@ -522,7 +521,7 @@ class ExternalDataAggregator:
         if self._cache is None or self._cache_time is None:
             return False
 
-        age = (datetime.now(timezone.utc) - self._cache_time).total_seconds()
+        age = (datetime.now(UTC) - self._cache_time).total_seconds()
         return age < self.cache_ttl
 
     async def _fetch_with_retry(
@@ -643,7 +642,7 @@ class ExternalDataAggregator:
             funding=funding,  # type: ignore[arg-type]
             open_interest=oi,  # type: ignore[arg-type]
             long_short=ls,  # type: ignore[arg-type]
-            fetch_time=datetime.now(timezone.utc),
+            fetch_time=datetime.now(UTC),
             errors=errors,
         )
 

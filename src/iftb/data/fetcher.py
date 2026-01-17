@@ -31,12 +31,12 @@ Example Usage:
 """
 
 import asyncio
+from collections.abc import Callable
 import csv
-import json
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any
 
 import ccxt.async_support as ccxt
 from ccxt.base.errors import (
@@ -236,7 +236,7 @@ class ExchangeClient:
         self.api_key = api_key
         self.api_secret = api_secret
         self.testnet = testnet
-        self.exchange: Optional[ccxt.Exchange] = None
+        self.exchange: ccxt.Exchange | None = None
         self._connected = False
         self._rate_limiter = asyncio.Semaphore(10)  # Max 10 concurrent requests
 
@@ -442,7 +442,7 @@ class ExchangeClient:
         self,
         symbol: str,
         timeframe: str,
-        since: Optional[int] = None,
+        since: int | None = None,
         limit: int = 500,
     ) -> list[OHLCVBar]:
         """
@@ -809,7 +809,7 @@ class HistoricalDataDownloader:
         start_date: datetime,
         end_date: datetime,
         output_dir: str,
-        progress_callback: Optional[Callable[[int, int, str], None]] = None,
+        progress_callback: Callable[[int, int, str], None] | None = None,
         resume: bool = True,
     ) -> str:
         """
@@ -926,7 +926,7 @@ class HistoricalDataDownloader:
         bars = []
 
         try:
-            with open(csv_path, "r", newline="") as f:
+            with open(csv_path, newline="") as f:
                 reader = csv.DictReader(f)
                 for row in reader:
                     bar = OHLCVBar(

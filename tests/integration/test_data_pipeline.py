@@ -8,10 +8,10 @@ Tests the flow of data from exchange to database, including:
 - Cache operations
 """
 
-import pytest
+from datetime import datetime
+
 import pandas as pd
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, patch
+import pytest
 
 
 @pytest.mark.integration

@@ -9,7 +9,6 @@ Note: This is a demo/test script and requires dependencies to be installed:
 """
 
 import asyncio
-from datetime import datetime
 
 
 async def demo_fear_greed():

@@ -25,7 +25,7 @@ from src.iftb.data.storage import (
     Trade,
     TradeRepository,
 )
-from src.iftb.utils import get_logger, setup_logging, LogConfig
+from src.iftb.utils import LogConfig, get_logger, setup_logging
 
 # Setup logging
 setup_logging(LogConfig(level="INFO", format="pretty"))

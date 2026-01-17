@@ -7,8 +7,8 @@ context management, sensitive data filtering, and output formatting.
 
 import json
 import logging
-import tempfile
 from pathlib import Path
+import tempfile
 
 import pytest
 import structlog
@@ -202,9 +202,8 @@ class TestContextManagement:
         setup_logging(config)
         logger = get_logger(__name__)
 
-        with add_context(outer="value1"):
-            with add_context(inner="value2"):
-                logger.info("nested_message")
+        with add_context(outer="value1"), add_context(inner="value2"):
+            logger.info("nested_message")
 
         log_content = Path(temp_log_file).read_text()
         log_entry = json.loads(log_content.strip())

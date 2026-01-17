@@ -10,9 +10,8 @@ Usage:
 
 import argparse
 import asyncio
-import sys
 from pathlib import Path
-from typing import List
+import sys
 
 
 def print_colored(text: str, color: str = "green"):
@@ -27,7 +26,7 @@ def print_colored(text: str, color: str = "green"):
     print(f"{colors.get(color, '')}{text}{colors['reset']}")
 
 
-def get_migration_files() -> List[Path]:
+def get_migration_files() -> list[Path]:
     """Get all migration SQL files in order"""
     migrations_dir = Path(__file__).parent
     migration_files = [

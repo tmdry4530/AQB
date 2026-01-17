@@ -6,25 +6,19 @@ integration including position sizing, risk calculations, safety checks, and
 decision-making logic with proper mocking of all dependencies.
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import Literal
-from unittest.mock import MagicMock, patch
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 from iftb.analysis import CompositeSignal, LLMAnalysis, ModelPrediction, SentimentScore
 from iftb.config.constants import (
-    CONFIDENCE_VETO_THRESHOLD,
     CONSECUTIVE_LOSS_LIMIT,
     HIGH_CONFIDENCE_LEVERAGE,
-    KELLY_FRACTION,
     MAX_DAILY_LOSS_PCT,
-    MAX_DRAWDOWN,
     MAX_LEVERAGE,
     MAX_POSITION_PCT,
     MIN_LEVERAGE,
     MIN_POSITION_PCT,
-    SENTIMENT_VETO_THRESHOLD,
 )
 from iftb.data import FearGreedData, FundingData, MarketContext
 from iftb.trading.decision_engine import (
@@ -35,7 +29,6 @@ from iftb.trading.decision_engine import (
     TradeHistory,
     TradingDecision,
 )
-
 
 # =============================================================================
 # Fixtures
@@ -83,8 +76,8 @@ def sample_trade_history_winning():
             leverage=5,
             pnl=250.0,
             pnl_pct=0.05,
-            entry_time=datetime.now(timezone.utc) - timedelta(hours=3),
-            exit_time=datetime.now(timezone.utc) - timedelta(hours=2),
+            entry_time=datetime.now(UTC) - timedelta(hours=3),
+            exit_time=datetime.now(UTC) - timedelta(hours=2),
             win=True,
         ),
         TradeHistory(
@@ -96,8 +89,8 @@ def sample_trade_history_winning():
             leverage=4,
             pnl=200.0,
             pnl_pct=0.04,
-            entry_time=datetime.now(timezone.utc) - timedelta(hours=2),
-            exit_time=datetime.now(timezone.utc) - timedelta(hours=1),
+            entry_time=datetime.now(UTC) - timedelta(hours=2),
+            exit_time=datetime.now(UTC) - timedelta(hours=1),
             win=True,
         ),
     ]
@@ -116,8 +109,8 @@ def sample_trade_history_losing():
             leverage=5,
             pnl=-125.0,
             pnl_pct=-0.025,
-            entry_time=datetime.now(timezone.utc) - timedelta(hours=i * 2),
-            exit_time=datetime.now(timezone.utc) - timedelta(hours=i * 2 - 1),
+            entry_time=datetime.now(UTC) - timedelta(hours=i * 2),
+            exit_time=datetime.now(UTC) - timedelta(hours=i * 2 - 1),
             win=False,
         )
         for i in range(6)  # 6 consecutive losses
@@ -141,24 +134,24 @@ def sample_technical_signal():
                 value=65.0,
                 signal="BULLISH",
                 strength=0.8,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             ),
             "MACD": IndicatorResult(
                 name="MACD",
                 value=0.5,
                 signal="BULLISH",
                 strength=0.7,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             ),
             "ATR": IndicatorResult(
                 name="ATR",
                 value=1000.0,
                 signal="NEUTRAL",
                 strength=1.0,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             ),
         },
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
     )
 
 
@@ -172,7 +165,7 @@ def sample_llm_analysis():
         key_factors=["Strong volume", "Positive news", "Technical breakout"],
         should_veto=False,
         veto_reason=None,
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         model="claude-sonnet-4-5-20250929",
         prompt_tokens=100,
         completion_tokens=50,
@@ -197,7 +190,7 @@ def sample_ml_prediction():
             "atr": 0.1,
         },
         model_version="1.0.0",
-        prediction_time=datetime.now(timezone.utc),
+        prediction_time=datetime.now(UTC),
     )
 
 
@@ -208,13 +201,13 @@ def sample_market_context():
         fear_greed=FearGreedData(
             value=65,
             classification="Greed",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         ),
         funding=FundingData(
             symbol="BTCUSDT",
             rate=0.0001,
             predicted_rate=0.00012,
-            next_funding_time=datetime.now(timezone.utc) + timedelta(hours=8),
+            next_funding_time=datetime.now(UTC) + timedelta(hours=8),
         ),
     )
 
@@ -376,8 +369,8 @@ class TestRiskManager:
                 leverage=5,
                 pnl=-125.0,
                 pnl_pct=-0.025,
-                entry_time=datetime.now(timezone.utc) - timedelta(hours=i * 2),
-                exit_time=datetime.now(timezone.utc) - timedelta(hours=i * 2 - 1),
+                entry_time=datetime.now(UTC) - timedelta(hours=i * 2),
+                exit_time=datetime.now(UTC) - timedelta(hours=i * 2 - 1),
                 win=False,
             )
             for i in range(CONSECUTIVE_LOSS_LIMIT)
@@ -598,7 +591,7 @@ class TestCircuitBreaker:
         assert circuit_breaker.is_triggered is True
 
         # Manually set trigger time to 25 hours ago (past cooldown)
-        circuit_breaker.trigger_time = datetime.now(timezone.utc) - timedelta(hours=25)
+        circuit_breaker.trigger_time = datetime.now(UTC) - timedelta(hours=25)
 
         # Check with normal metrics
         metrics = {
@@ -1045,7 +1038,7 @@ class TestTradingDecision:
             stop_loss=44000.0,
             take_profit=46000.0,
             entry_price=45000.0,
-            timestamp=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
             reasons=["Strong technical signal"],
             vetoed=False,
             veto_reason=None,
@@ -1074,7 +1067,7 @@ class TestTradingDecision:
             stop_loss=44000.0,
             take_profit=46000.0,
             entry_price=45000.0,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
         repr_str = repr(decision)
@@ -1096,7 +1089,7 @@ class TestTradingDecision:
             stop_loss=45000.0,
             take_profit=45000.0,
             entry_price=45000.0,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
         repr_str = repr(decision)
@@ -1115,7 +1108,7 @@ class TestTradingDecision:
             stop_loss=45000.0,
             take_profit=45000.0,
             entry_price=45000.0,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             vetoed=True,
             veto_reason="Kill switch active",
         )

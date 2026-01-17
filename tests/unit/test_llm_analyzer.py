@@ -6,11 +6,11 @@ caching, rate limiting, error handling, and fallback modes.
 """
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
 from anthropic.types import Message, TextBlock, Usage
+import pytest
 
 from iftb.analysis.llm_analyzer import (
     FallbackMode,
@@ -27,7 +27,7 @@ def sample_news_messages():
     """Create sample news messages for testing."""
     return [
         NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Bitcoin breaks $50,000 resistance with strong volume",
             channel="CryptoNews",
             channel_id=123,
@@ -38,7 +38,7 @@ def sample_news_messages():
             keywords=[],
         ),
         NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Breaking: Major exchange lists new trading pairs",
             channel="CryptoNews",
             channel_id=123,
@@ -60,13 +60,13 @@ def sample_market_context():
         fear_greed=FearGreedData(
             value=65,
             classification="Greed",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         ),
         funding=FundingData(
             symbol="BTC",
             rate=0.0001,
             predicted_rate=0.00012,
-            next_funding_time=datetime.now(timezone.utc),
+            next_funding_time=datetime.now(UTC),
         ),
     )
 
@@ -100,7 +100,7 @@ class TestLLMAnalysis:
             key_factors=["Strong volume", "Positive news"],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="claude-sonnet-4-20250514",
             prompt_tokens=100,
             completion_tokens=50,
@@ -120,7 +120,7 @@ class TestLLMAnalysis:
                 key_factors=[],
                 should_veto=False,
                 veto_reason=None,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 model="test",
                 prompt_tokens=0,
                 completion_tokens=0,
@@ -135,7 +135,7 @@ class TestLLMAnalysis:
             key_factors=["Negative funding", "Weak volume"],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="claude-sonnet-4-20250514",
             prompt_tokens=120,
             completion_tokens=60,
@@ -171,7 +171,7 @@ class TestLLMVetoSystem:
             key_factors=["Major sell-off"],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -190,7 +190,7 @@ class TestLLMVetoSystem:
             key_factors=["Mixed signals"],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -209,7 +209,7 @@ class TestLLMVetoSystem:
             key_factors=["Negative indicators"],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -228,7 +228,7 @@ class TestLLMVetoSystem:
             key_factors=["Positive indicators"],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -247,7 +247,7 @@ class TestLLMVetoSystem:
             key_factors=["Positive momentum"],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -266,7 +266,7 @@ class TestLLMVetoSystem:
             key_factors=["Unusual volatility"],
             should_veto=True,
             veto_reason="Extreme volatility risk",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -286,7 +286,7 @@ class TestLLMVetoSystem:
             key_factors=[],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -302,7 +302,7 @@ class TestLLMVetoSystem:
             key_factors=[],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -318,7 +318,7 @@ class TestLLMVetoSystem:
             key_factors=[],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="test",
             prompt_tokens=0,
             completion_tokens=0,
@@ -489,7 +489,7 @@ class TestLLMAnalyzer:
             "key_factors": ["Factor 1"],
             "should_veto": False,
             "veto_reason": None,
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "model": "test",
             "prompt_tokens": 100,
             "completion_tokens": 50,

@@ -33,19 +33,18 @@ Example Usage:
     ```
 """
 
-import logging
-import sys
 from contextlib import contextmanager
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+import logging
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+import sys
+from typing import Any, Literal
 
 import structlog
 from structlog.types import EventDict, Processor
 
-
 # Global context storage for thread-local context
-_context_vars: Dict[str, Any] = {}
+_context_vars: dict[str, Any] = {}
 
 
 @dataclass
@@ -65,7 +64,7 @@ class LogConfig:
     """
     level: str = "INFO"
     format: Literal["json", "pretty"] = "pretty"
-    file_path: Optional[str] = None
+    file_path: str | None = None
     include_timestamp: bool = True
     include_caller_info: bool = True
     console_output: bool = True
@@ -161,7 +160,7 @@ def filter_sensitive(
                 key: mask_value(value) if key.lower() in sensitive_keys else recursive_mask(value)
                 for key, value in data.items()
             }
-        elif isinstance(data, (list, tuple)):
+        if isinstance(data, (list, tuple)):
             return type(data)(recursive_mask(item) for item in data)
         return data
 
@@ -205,9 +204,9 @@ def truncate_strings(
         """Truncate a single value if it's a long string."""
         if isinstance(value, str) and len(value) > max_length:
             return f"{value[:max_length]}... [truncated]"
-        elif isinstance(value, dict):
+        if isinstance(value, dict):
             return {k: truncate_value(v) for k, v in value.items()}
-        elif isinstance(value, (list, tuple)):
+        if isinstance(value, (list, tuple)):
             return type(value)(truncate_value(item) for item in value)
         return value
 

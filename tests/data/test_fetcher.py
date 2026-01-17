@@ -4,13 +4,12 @@ Tests for the data fetcher module.
 Tests cover OHLCV fetching, ticker data, funding rates, and historical data downloading.
 """
 
-import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
+from ccxt.base.errors import NetworkError, RateLimitExceeded
 import pytest
-from ccxt.base.errors import RateLimitExceeded, NetworkError
 
 from iftb.data.fetcher import (
     ExchangeClient,
@@ -19,7 +18,6 @@ from iftb.data.fetcher import (
     OHLCVBar,
     Ticker,
 )
-
 
 # =============================================================================
 # Test Data Structures
@@ -308,7 +306,7 @@ class TestHistoricalDataDownloader:
             assert Path(file_path).suffix == ".csv"
 
             # Verify CSV content
-            with open(file_path, "r") as f:
+            with open(file_path) as f:
                 lines = f.readlines()
                 assert len(lines) > 1  # Header + data rows
                 assert "timestamp" in lines[0]

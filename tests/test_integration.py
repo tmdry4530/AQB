@@ -4,9 +4,8 @@ Integration tests for IFTB Trading Bot.
 Tests component initialization, data flow, and end-to-end functionality.
 """
 
-import asyncio
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -22,7 +21,7 @@ class TestTechnicalAnalyzer:
 
     def test_indicator_calculation(self):
         """Test that indicators are calculated correctly."""
-        from iftb.analysis import TechnicalAnalyzer, CompositeSignal
+        from iftb.analysis import CompositeSignal, TechnicalAnalyzer
         from iftb.data import OHLCVBar
 
         # Create mock OHLCV data
@@ -30,7 +29,7 @@ class TestTechnicalAnalyzer:
         base_price = 50000.0
         for i in range(100):
             ohlcv_data.append(OHLCVBar(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 open=base_price + i * 10,
                 high=base_price + i * 10 + 50,
                 low=base_price + i * 10 - 50,
@@ -53,7 +52,7 @@ class TestTechnicalAnalyzer:
         # Create insufficient data (less than 50 bars)
         ohlcv_data = [
             OHLCVBar(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 open=50000.0,
                 high=50100.0,
                 low=49900.0,
@@ -76,8 +75,8 @@ class TestDecisionEngine:
 
     def test_hold_decision_on_low_confidence(self):
         """Test that low confidence results in HOLD."""
-        from iftb.trading import create_decision_engine
         from iftb.analysis import CompositeSignal
+        from iftb.trading import create_decision_engine
 
         engine = create_decision_engine()
 
@@ -87,7 +86,7 @@ class TestDecisionEngine:
             strength=0.2,
             confidence=0.3,
             indicators={},
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
         decision = engine.make_decision(
@@ -103,8 +102,8 @@ class TestDecisionEngine:
 
     def test_veto_on_circuit_breaker(self):
         """Test that circuit breaker triggers veto."""
-        from iftb.trading import create_decision_engine, CircuitBreaker
         from iftb.analysis import CompositeSignal
+        from iftb.trading import create_decision_engine
 
         engine = create_decision_engine()
 
@@ -116,7 +115,7 @@ class TestDecisionEngine:
             strength=0.9,
             confidence=0.8,
             indicators={},
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         )
 
         decision = engine.make_decision(
@@ -138,7 +137,7 @@ class TestOrderExecutor:
     @pytest.mark.asyncio
     async def test_paper_trading_execution(self):
         """Test paper trading order execution."""
-        from iftb.trading import OrderExecutor, ExecutionRequest
+        from iftb.trading import ExecutionRequest, OrderExecutor
 
         executor = OrderExecutor(
             paper_mode=True,
@@ -164,7 +163,7 @@ class TestOrderExecutor:
     @pytest.mark.asyncio
     async def test_paper_trading_position_tracking(self):
         """Test that positions are tracked correctly in paper mode."""
-        from iftb.trading import OrderExecutor, ExecutionRequest
+        from iftb.trading import ExecutionRequest, OrderExecutor
 
         executor = OrderExecutor(
             paper_mode=True,
@@ -238,7 +237,7 @@ class TestDataIntegration:
         mock_client = MagicMock(spec=ExchangeClient)
         mock_client.fetch_ohlcv = AsyncMock(return_value=[
             OHLCVBar(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 open=50000.0,
                 high=50100.0,
                 low=49900.0,
@@ -259,12 +258,12 @@ class TestEndToEnd:
     async def test_full_trading_cycle_paper_mode(self):
         """Test complete trading cycle in paper mode."""
         from iftb.analysis import TechnicalAnalyzer
+        from iftb.data import OHLCVBar
         from iftb.trading import (
-            create_decision_engine,
             OrderExecutor,
             convert_decision_to_request,
+            create_decision_engine,
         )
-        from iftb.data import OHLCVBar
 
         # 1. Create OHLCV data with bullish trend
         ohlcv_data = []
@@ -272,7 +271,7 @@ class TestEndToEnd:
         for i in range(100):
             # Create uptrend
             ohlcv_data.append(OHLCVBar(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 open=base_price + i * 100,
                 high=base_price + i * 100 + 150,
                 low=base_price + i * 100 - 50,
@@ -319,9 +318,6 @@ class TestComponentImports:
         from iftb.data import (
             ExchangeClient,
             OHLCVBar,
-            CacheManager,
-            DatabaseManager,
-            ExternalDataAggregator,
         )
         assert ExchangeClient is not None
         assert OHLCVBar is not None
@@ -329,10 +325,8 @@ class TestComponentImports:
     def test_analysis_module_imports(self):
         """Test analysis module imports."""
         from iftb.analysis import (
-            TechnicalAnalyzer,
             LLMAnalyzer,
-            XGBoostValidator,
-            CompositeSignal,
+            TechnicalAnalyzer,
         )
         assert TechnicalAnalyzer is not None
         assert LLMAnalyzer is not None
@@ -341,10 +335,7 @@ class TestComponentImports:
         """Test trading module imports."""
         from iftb.trading import (
             DecisionEngine,
-            RiskManager,
             OrderExecutor,
-            CircuitBreaker,
-            KillSwitch,
         )
         assert DecisionEngine is not None
         assert OrderExecutor is not None

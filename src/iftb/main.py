@@ -7,13 +7,12 @@ LLM sentiment, ML validation, decision engine, and order execution.
 """
 
 import asyncio
+from datetime import UTC, datetime
 import signal
 import sys
-from datetime import datetime, timezone
 from typing import NoReturn
 
 from iftb.analysis import (
-    LLMAnalyzer,
     LLMVetoSystem,
     TechnicalAnalyzer,
     XGBoostValidator,
@@ -34,7 +33,6 @@ from iftb.data import (
     fetch_latest_ticker,
 )
 from iftb.trading import (
-    DecisionEngine,
     OrderExecutor,
     convert_decision_to_request,
     create_decision_engine,
@@ -403,7 +401,7 @@ async def process_symbol(
                             leverage=decision.leverage,
                             stop_loss=decision.stop_loss,
                             take_profit=decision.take_profit,
-                            timestamp=datetime.now(timezone.utc),
+                            timestamp=datetime.now(UTC),
                         )
                     except Exception as e:
                         logger.warning("trade_save_failed", error=str(e))
@@ -467,7 +465,7 @@ async def main_loop(components: dict) -> None:
     while not shutdown_event.is_set():
         try:
             iteration += 1
-            loop_start = datetime.now(timezone.utc)
+            loop_start = datetime.now(UTC)
 
             logger.debug("main_loop_iteration", iteration=iteration)
 
@@ -500,7 +498,7 @@ async def main_loop(components: dict) -> None:
                 )
 
             # Calculate remaining time to sleep
-            elapsed = (datetime.now(timezone.utc) - loop_start).total_seconds()
+            elapsed = (datetime.now(UTC) - loop_start).total_seconds()
             sleep_time = max(loop_interval - elapsed, 1)
 
             logger.debug(
@@ -516,7 +514,7 @@ async def main_loop(components: dict) -> None:
                     shutdown_event.wait(),
                     timeout=sleep_time,
                 )
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 pass  # Normal timeout, continue loop
 
         except asyncio.CancelledError:

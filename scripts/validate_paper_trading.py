@@ -13,9 +13,9 @@ Run with: python -m scripts.validate_paper_trading
 """
 
 import asyncio
+from datetime import UTC, datetime, timedelta
 import random
 import uuid
-from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
@@ -48,7 +48,7 @@ def generate_mock_ohlcv(
     volumes = []
 
     price = start_price
-    base_time = datetime.now(timezone.utc) - timedelta(hours=bars)
+    base_time = datetime.now(UTC) - timedelta(hours=bars)
 
     for i in range(bars):
         timestamps.append(base_time + timedelta(hours=i))
@@ -75,12 +75,12 @@ def generate_mock_ohlcv(
         price = close_price
 
     return pd.DataFrame({
-        'timestamp': timestamps,
-        'open': opens,
-        'high': highs,
-        'low': lows,
-        'close': closes,
-        'volume': volumes,
+        "timestamp": timestamps,
+        "open": opens,
+        "high": highs,
+        "low": lows,
+        "close": closes,
+        "volume": volumes,
     })
 
 
@@ -94,17 +94,17 @@ async def run_paper_trading_validation():
 
     # Import modules (deferred to allow script to run without full setup)
     try:
-        from iftb.analysis import TechnicalAnalyzer, CompositeSignal
+        from iftb.analysis import CompositeSignal, TechnicalAnalyzer
         from iftb.analysis.llm_analyzer import LLMAnalysis, SentimentScore
         from iftb.analysis.ml_model import ModelPrediction
-        from iftb.trading import (
-            create_decision_engine,
-            PaperTrader,
-            Order,
-            RiskManager,
-            CircuitBreaker,
-        )
         from iftb.data import MarketContext
+        from iftb.trading import (
+            CircuitBreaker,
+            Order,
+            PaperTrader,
+            RiskManager,
+            create_decision_engine,
+        )
     except ImportError as e:
         print(f"Import error: {e}")
         print("Please ensure the package is installed: uv pip install -e .")
@@ -119,7 +119,7 @@ async def run_paper_trading_validation():
             key_factors=["Test factor 1", "Test factor 2"],
             should_veto=False,
             veto_reason=None,
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             model="mock-model",
             prompt_tokens=100,
             completion_tokens=50,
@@ -136,7 +136,7 @@ async def run_paper_trading_validation():
             probability_hold=0.6,
             feature_importance={"rsi": 0.2, "macd": 0.3},
             model_version="mock-v1",
-            prediction_time=datetime.now(timezone.utc),
+            prediction_time=datetime.now(UTC),
         )
 
     success = True
@@ -196,7 +196,7 @@ async def run_paper_trading_validation():
                 strength=0.7,
                 confidence=0.8,
                 indicators={},
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
             )
 
         # Test with strong signal
@@ -379,7 +379,7 @@ async def run_paper_trading_validation():
         )
 
         print(f"  Calculated Position Size: {position_size:.4f}")
-        print(f"  Max Position Size: 0.10 (10%)")
+        print("  Max Position Size: 0.10 (10%)")
 
         if 0 <= position_size <= 0.10:
             print("  [PASS] Risk management position sizing working")
@@ -460,7 +460,7 @@ async def run_paper_trading_validation():
                 break
 
             data_window = market_data.iloc[start_idx:end_idx].copy()
-            current_price = float(data_window['close'].iloc[-1])
+            current_price = float(data_window["close"].iloc[-1])
 
             # Analyze
             analyzer = TechnicalAnalyzer(data_window)

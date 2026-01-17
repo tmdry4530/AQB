@@ -17,9 +17,9 @@ The model serves as a final validation layer after technical and LLM analysis,
 providing statistical backing for trade decisions.
 """
 
-import json
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
+import json
 from pathlib import Path
 from typing import Literal
 

@@ -10,14 +10,11 @@ Tests cover:
 - Emergency close functionality
 """
 
-import uuid
-from datetime import datetime, timedelta
-from decimal import Decimal
-from typing import Literal
+from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
+import uuid
 
 import pytest
-import pytest_asyncio
 
 from iftb.trading.executor import (
     ExecutionRequest,
@@ -28,7 +25,6 @@ from iftb.trading.executor import (
     PositionState,
     convert_decision_to_request,
 )
-
 
 # =============================================================================
 # Fixtures

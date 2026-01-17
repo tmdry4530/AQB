@@ -6,7 +6,7 @@ for intelligent market analysis and trade decision making.
 """
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from iftb.analysis import (
     LLMAnalyzer,
@@ -41,7 +41,7 @@ async def example_basic_analysis():
     # Sample news messages
     news_messages = [
         NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Bitcoin surges past $50,000 as institutional adoption accelerates",
             channel="CryptoNews",
             channel_id=123,
@@ -52,7 +52,7 @@ async def example_basic_analysis():
             keywords=[],
         ),
         NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Major bank announces crypto trading services",
             channel="CryptoNews",
             channel_id=123,
@@ -69,13 +69,13 @@ async def example_basic_analysis():
         fear_greed=FearGreedData(
             value=70,
             classification="Greed",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         ),
         funding=FundingData(
             symbol="BTC",
             rate=0.0001,
             predicted_rate=0.00012,
-            next_funding_time=datetime.now(timezone.utc),
+            next_funding_time=datetime.now(UTC),
         ),
     )
 
@@ -91,7 +91,7 @@ async def example_basic_analysis():
     print(f"\nSentiment: {analysis.sentiment}")
     print(f"Confidence: {analysis.confidence:.2%}")
     print(f"Summary: {analysis.summary}")
-    print(f"\nKey Factors:")
+    print("\nKey Factors:")
     for i, factor in enumerate(analysis.key_factors, 1):
         print(f"  {i}. {factor}")
     print(f"\nShould Veto: {analysis.should_veto}")
@@ -109,46 +109,46 @@ async def example_veto_system():
     veto_system = LLMVetoSystem()
 
     # Scenario 1: Bullish analysis, long trade
-    analysis1 = type('Analysis', (), {
-        'sentiment': SentimentScore.BULLISH,
-        'confidence': 0.8,
-        'should_veto': False,
-        'veto_reason': None,
+    analysis1 = type("Analysis", (), {
+        "sentiment": SentimentScore.BULLISH,
+        "confidence": 0.8,
+        "should_veto": False,
+        "veto_reason": None,
     })()
 
     should_veto, reason = veto_system.should_veto_trade(analysis1, "long")
-    print(f"\nScenario 1: Bullish sentiment, Long trade")
+    print("\nScenario 1: Bullish sentiment, Long trade")
     print(f"  Veto: {should_veto}")
     print(f"  Reason: {reason if reason else 'No veto'}")
 
     # Scenario 2: Bearish analysis, long trade (conflict)
-    analysis2 = type('Analysis', (), {
-        'sentiment': SentimentScore.BEARISH,
-        'confidence': 0.7,
-        'should_veto': False,
-        'veto_reason': None,
+    analysis2 = type("Analysis", (), {
+        "sentiment": SentimentScore.BEARISH,
+        "confidence": 0.7,
+        "should_veto": False,
+        "veto_reason": None,
     })()
 
     should_veto, reason = veto_system.should_veto_trade(analysis2, "long")
-    print(f"\nScenario 2: Bearish sentiment, Long trade (conflict)")
+    print("\nScenario 2: Bearish sentiment, Long trade (conflict)")
     print(f"  Veto: {should_veto}")
     print(f"  Reason: {reason}")
 
     # Scenario 3: Low confidence
-    analysis3 = type('Analysis', (), {
-        'sentiment': SentimentScore.NEUTRAL,
-        'confidence': 0.2,
-        'should_veto': False,
-        'veto_reason': None,
+    analysis3 = type("Analysis", (), {
+        "sentiment": SentimentScore.NEUTRAL,
+        "confidence": 0.2,
+        "should_veto": False,
+        "veto_reason": None,
     })()
 
     should_veto, reason = veto_system.should_veto_trade(analysis3, "long")
-    print(f"\nScenario 3: Low confidence")
+    print("\nScenario 3: Low confidence")
     print(f"  Veto: {should_veto}")
     print(f"  Reason: {reason}")
 
     # Position size multipliers
-    print(f"\n" + "-" * 60)
+    print("\n" + "-" * 60)
     print("Position Size Multipliers:")
     print("-" * 60)
 
@@ -174,7 +174,7 @@ async def example_with_caching():
     # Sample data
     news_messages = [
         NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Bitcoin consolidates after recent rally",
             channel="CryptoNews",
             channel_id=123,
@@ -190,7 +190,7 @@ async def example_with_caching():
         fear_greed=FearGreedData(
             value=60,
             classification="Greed",
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
         ),
     )
 
@@ -264,7 +264,7 @@ async def example_error_handling():
         )
 
         # Should get fallback analysis
-        print(f"\nFallback Mode Activated")
+        print("\nFallback Mode Activated")
         print(f"Sentiment: {analysis.sentiment}")
         print(f"Confidence: {analysis.confidence:.2%}")
         print(f"Summary: {analysis.summary}")

@@ -4,27 +4,25 @@ Tests for database storage layer.
 Tests the DatabaseManager, repositories, and ORM models.
 """
 
-import pytest
-import pytest_asyncio
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+import pytest
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 from src.iftb.data.storage import (
     Base,
     DatabaseManager,
+    OHLCVBar,
     OHLCVRepository,
-    TradeRepository,
+    Position,
     PositionRepository,
     SystemEventRepository,
-    OHLCVBar,
     Trade,
-    Position,
-    SystemEvent,
+    TradeRepository,
 )
-
 
 # ============================================================================
 # Fixtures

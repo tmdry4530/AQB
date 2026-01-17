@@ -43,14 +43,12 @@ Example Usage:
 """
 
 import asyncio
-import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Literal
+import uuid
 
-import ccxt.async_support as ccxt
 from ccxt.base.errors import (
-    BadRequest,
     ExchangeError,
     InsufficientFunds,
     InvalidOrder,
@@ -58,7 +56,6 @@ from ccxt.base.errors import (
     OrderNotFound,
 )
 
-from iftb.config import get_settings
 from iftb.data import ExchangeClient
 from iftb.utils import get_logger
 
@@ -96,15 +93,15 @@ class Order:
     side: Literal["buy", "sell"]
     type: Literal["market", "limit", "stop_loss", "take_profit"]
     amount: float
-    price: Optional[float] = None
-    stop_price: Optional[float] = None
+    price: float | None = None
+    stop_price: float | None = None
     status: Literal["pending", "filled", "cancelled", "failed"] = "pending"
-    filled_price: Optional[float] = None
-    filled_amount: Optional[float] = None
-    fee: Optional[float] = None
+    filled_price: float | None = None
+    filled_amount: float | None = None
+    fee: float | None = None
     timestamp: datetime = field(default_factory=datetime.now)
-    exchange_order_id: Optional[str] = None
-    error_message: Optional[str] = None
+    exchange_order_id: str | None = None
+    error_message: str | None = None
 
     def to_dict(self) -> dict:
         """Convert order to dictionary representation."""
@@ -139,8 +136,8 @@ class PositionState:
     leverage: int
     unrealized_pnl: float
     liquidation_price: float
-    stop_loss: Optional[float] = None
-    take_profit: Optional[float] = None
+    stop_loss: float | None = None
+    take_profit: float | None = None
     opened_at: datetime = field(default_factory=datetime.now)
 
     def to_dict(self) -> dict:
@@ -169,12 +166,12 @@ class ExecutionRequest:
     action: Literal["long", "short", "close"]
     symbol: str
     amount: float
-    entry_price: Optional[float] = None
-    stop_loss: Optional[float] = None
-    take_profit: Optional[float] = None
+    entry_price: float | None = None
+    stop_loss: float | None = None
+    take_profit: float | None = None
     leverage: int = 1
     order_type: Literal["market", "limit"] = "market"
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 # =============================================================================
@@ -301,7 +298,7 @@ class PaperTrader:
             taker_fee=taker_fee,
         )
 
-    async def place_order(self, order: Order, current_price: Optional[float] = None) -> Order:
+    async def place_order(self, order: Order, current_price: float | None = None) -> Order:
         """
         Simulate order placement and execution.
 
@@ -820,7 +817,7 @@ class LiveExecutor:
             )
             return False
 
-    async def get_position(self, symbol: str) -> Optional[PositionState]:
+    async def get_position(self, symbol: str) -> PositionState | None:
         """
         Get current position for symbol.
 
@@ -1071,7 +1068,7 @@ class OrderExecutor:
     def __init__(
         self,
         paper_mode: bool = True,
-        exchange_client: Optional[ExchangeClient] = None,
+        exchange_client: ExchangeClient | None = None,
         initial_balance: float = 10000.0,
         max_position_size: float = 0.1,  # 10% of balance
         max_leverage: int = 5,
@@ -1388,8 +1385,7 @@ class OrderExecutor:
                 price=ticker.last,
             )
             return await self.paper_trader.place_order(order, ticker.last)
-        else:
-            return await self.live_executor.place_market_order(symbol, side, amount)
+        return await self.live_executor.place_market_order(symbol, side, amount)
 
     async def _execute_limit_order(
         self,
@@ -1409,8 +1405,7 @@ class OrderExecutor:
                 price=price,
             )
             return await self.paper_trader.place_order(order, price)
-        else:
-            return await self.live_executor.place_limit_order(symbol, side, amount, price)
+        return await self.live_executor.place_limit_order(symbol, side, amount, price)
 
     async def _set_stop_loss_order(
         self,
@@ -1437,8 +1432,7 @@ class OrderExecutor:
                 status="pending",
             )
             return order
-        else:
-            return await self.live_executor.set_stop_loss(symbol, side, amount, stop_price)
+        return await self.live_executor.set_stop_loss(symbol, side, amount, stop_price)
 
     async def _set_take_profit_order(
         self,
@@ -1465,47 +1459,43 @@ class OrderExecutor:
                 status="pending",
             )
             return order
-        else:
-            return await self.live_executor.set_take_profit(symbol, side, amount, price)
+        return await self.live_executor.set_take_profit(symbol, side, amount, price)
 
-    async def _get_current_position(self, symbol: str) -> Optional[PositionState]:
+    async def _get_current_position(self, symbol: str) -> PositionState | None:
         """Get current position for symbol."""
         if self.paper_mode:
             return self.paper_trader.positions.get(symbol)
-        else:
-            return await self.live_executor.get_position(symbol)
+        return await self.live_executor.get_position(symbol)
 
     async def _get_all_positions(self) -> list[PositionState]:
         """Get all open positions."""
         if self.paper_mode:
             return self.paper_trader.get_positions()
-        else:
-            # Get all positions from exchange
-            positions = []
-            try:
-                all_positions = await self.live_executor.client.exchange.fetch_positions()
-                for pos_data in all_positions:
-                    contracts = float(pos_data.get("contracts", 0))
-                    if contracts > 0:
-                        position = await self.live_executor.get_position(pos_data["symbol"])
-                        if position:
-                            positions.append(position)
-            except Exception as e:
-                logger.error("failed_to_fetch_all_positions", error=str(e))
+        # Get all positions from exchange
+        positions = []
+        try:
+            all_positions = await self.live_executor.client.exchange.fetch_positions()
+            for pos_data in all_positions:
+                contracts = float(pos_data.get("contracts", 0))
+                if contracts > 0:
+                    position = await self.live_executor.get_position(pos_data["symbol"])
+                    if position:
+                        positions.append(position)
+        except Exception as e:
+            logger.error("failed_to_fetch_all_positions", error=str(e))
 
-            return positions
+        return positions
 
     async def _get_balance(self) -> float:
         """Get current account balance."""
         if self.paper_mode:
             return self.paper_trader.get_balance()
-        else:
-            try:
-                balance = await self.live_executor.client.exchange.fetch_balance()
-                return float(balance.get("USDT", {}).get("free", 0))
-            except Exception as e:
-                logger.error("failed_to_fetch_balance", error=str(e))
-                return 0.0
+        try:
+            balance = await self.live_executor.client.exchange.fetch_balance()
+            return float(balance.get("USDT", {}).get("free", 0))
+        except Exception as e:
+            logger.error("failed_to_fetch_balance", error=str(e))
+            return 0.0
 
     async def _cancel_stop_orders(self, symbol: str) -> None:
         """Cancel all stop-loss orders for symbol."""

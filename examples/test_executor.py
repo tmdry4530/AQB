@@ -38,7 +38,7 @@ async def test_paper_trading():
     print("\nExecuting long position...")
     order = await executor.execute_decision(long_request)
 
-    print(f"\nOrder Result:")
+    print("\nOrder Result:")
     print(f"  ID: {order.id}")
     print(f"  Status: {order.status}")
     print(f"  Filled Price: {order.filled_price}")
@@ -47,14 +47,14 @@ async def test_paper_trading():
 
     # Get account status
     account = await executor.get_account_status()
-    print(f"\nAccount Status:")
+    print("\nAccount Status:")
     print(f"  Balance: ${account['balance']:.2f}")
     print(f"  Positions: {account['positions_count']}")
     print(f"  Total Equity: ${account['total_equity']:.2f}")
 
-    if account['positions_count'] > 0:
-        print(f"\n  Position Details:")
-        for pos in account['positions']:
+    if account["positions_count"] > 0:
+        print("\n  Position Details:")
+        for pos in account["positions"]:
             print(f"    Symbol: {pos['symbol']}")
             print(f"    Side: {pos['side']}")
             print(f"    Entry: ${pos['entry_price']:.2f}")
@@ -119,7 +119,7 @@ async def test_position_management():
 
     # Get final account status
     account = await executor.get_account_status()
-    print(f"\nFinal Account Status:")
+    print("\nFinal Account Status:")
     print(f"  Balance: ${account['balance']:.2f}")
     print(f"  Open Positions: {account['positions_count']}")
 

@@ -34,10 +34,10 @@ Example Usage:
     ```
 """
 
-import hashlib
 from dataclasses import asdict
 from datetime import datetime
-from typing import Any, Optional
+import hashlib
+from typing import Any
 
 import orjson
 from redis.asyncio import Redis
@@ -80,7 +80,7 @@ class RedisClient:
     """
 
     def __init__(
-        self, host: str, port: int, password: Optional[str] = None, db: int = 0
+        self, host: str, port: int, password: str | None = None, db: int = 0
     ) -> None:
         """
         Initialize Redis client.
@@ -95,7 +95,7 @@ class RedisClient:
         self.port = port
         self.password = password
         self.db = db
-        self._client: Optional[Redis] = None
+        self._client: Redis | None = None
 
     async def connect(self) -> None:
         """
@@ -138,7 +138,7 @@ class RedisClient:
             logger.info("redis_disconnected")
             self._client = None
 
-    async def get(self, key: str) -> Optional[str]:
+    async def get(self, key: str) -> str | None:
         """
         Get value by key.
 
@@ -166,7 +166,7 @@ class RedisClient:
             raise
 
     async def set(
-        self, key: str, value: str, ttl: Optional[int] = None
+        self, key: str, value: str, ttl: int | None = None
     ) -> None:
         """
         Set key-value pair with optional TTL.
@@ -235,7 +235,7 @@ class RedisClient:
             logger.error("redis_exists_error", key=key, error=str(e))
             raise
 
-    async def get_json(self, key: str) -> Optional[dict[str, Any]]:
+    async def get_json(self, key: str) -> dict[str, Any] | None:
         """
         Get JSON value by key.
 
@@ -260,7 +260,7 @@ class RedisClient:
             raise
 
     async def set_json(
-        self, key: str, value: dict[str, Any], ttl: Optional[int] = None
+        self, key: str, value: dict[str, Any], ttl: int | None = None
     ) -> None:
         """
         Set JSON value with optional TTL.
@@ -340,7 +340,7 @@ class OHLCVCache:
 
     async def get_bars(
         self, symbol: str, timeframe: str, limit: int = 100
-    ) -> Optional[list[OHLCVBar]]:
+    ) -> list[OHLCVBar] | None:
         """
         Retrieve cached OHLCV bars.
 
@@ -455,7 +455,7 @@ class OHLCVCache:
 
     async def get_latest_bar(
         self, symbol: str, timeframe: str
-    ) -> Optional[OHLCVBar]:
+    ) -> OHLCVBar | None:
         """
         Get the most recent cached bar.
 
@@ -524,7 +524,7 @@ class MarketDataCache:
         """
         self.client = client
 
-    async def get_ticker(self, symbol: str) -> Optional[Ticker]:
+    async def get_ticker(self, symbol: str) -> Ticker | None:
         """
         Retrieve cached ticker data.
 
@@ -565,7 +565,7 @@ class MarketDataCache:
 
         logger.debug("ticker_cached", symbol=symbol, ttl=ttl)
 
-    async def get_funding_rate(self, symbol: str) -> Optional[float]:
+    async def get_funding_rate(self, symbol: str) -> float | None:
         """
         Retrieve cached funding rate.
 
@@ -605,7 +605,7 @@ class MarketDataCache:
 
         logger.debug("funding_rate_cached", symbol=symbol, rate=rate, ttl=ttl)
 
-    async def get_fear_greed(self) -> Optional[FearGreedData]:
+    async def get_fear_greed(self) -> FearGreedData | None:
         """
         Retrieve cached Fear & Greed index data.
 
@@ -679,7 +679,7 @@ class LLMCache:
 
     async def get_analysis(
         self, analysis_type: str, input_hash: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """
         Retrieve cached LLM analysis.
 
@@ -754,7 +754,7 @@ class CacheManager:
     """
 
     def __init__(
-        self, host: str, port: int, password: Optional[str] = None, db: int = 0
+        self, host: str, port: int, password: str | None = None, db: int = 0
     ) -> None:
         """
         Initialize cache manager.

@@ -4,10 +4,11 @@ Unit tests for technical indicators.
 Tests individual indicator calculations with known inputs and expected outputs.
 """
 
+from hypothesis import given
+from hypothesis import strategies as st
 import numpy as np
 import pandas as pd
 import pytest
-from hypothesis import given, strategies as st
 
 
 @pytest.mark.unit

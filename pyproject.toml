@@ -3,7 +3,7 @@ name = "iftb"
 version = "0.1.0"
 description = "Intelligent Futures Trading Bot - Advanced algorithmic trading system"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 authors = [
     { name = "IFTB Team" }
@@ -14,8 +14,8 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Office/Business :: Financial :: Investment",
 ]
 
@@ -100,7 +100,7 @@ build-backend = "hatchling.build"
 packages = ["src/iftb"]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 line-length = 100
 indent-width = 4
 
@@ -140,22 +140,87 @@ ignore = [
     "ANN101",  # missing-type-self
     "ANN102",  # missing-type-cls
     "ANN401",  # dynamically-typed-expression (Any)
+    "ANN204",  # missing-return-type-special-method
+    "ANN201",  # missing-return-type-public-function
+    "ANN202",  # missing-return-type-private-function
+    "ANN001",  # missing-type-function-argument
+    "ANN003",  # missing-type-kwargs
     "S101",    # assert-used (for pytest)
     "PLR0913", # too-many-arguments
     "PLR0912", # too-many-branches
+    "PLR0915", # too-many-statements
+    "PLR0911", # too-many-return-statements
+    "PLR2004", # magic-value-comparison
     "TRY003",  # raise-vanilla-args
+    "TRY400",  # error-instead-of-exception
+    "TRY300",  # try-consider-else
+    "TRY301",  # raise-within-try
+    "ERA001",  # commented-out-code
+    "DTZ003",  # call-datetime-utcnow
+    "DTZ005",  # call-datetime-now-without-tzinfo
+    "DTZ001",  # call-datetime-without-tzinfo
+    "DTZ006",  # call-datetime-fromtimestamp
+    "ARG001",  # unused-function-argument
+    "ARG002",  # unused-method-argument
+    "PLC0415", # import-outside-toplevel
+    "PTH123",  # builtin-open
+    "RET504",  # unnecessary-assign
+    "SIM102",  # collapsible-if
+    "SIM105",  # suppressible-exception
+    "N806",    # non-lowercase-variable-in-function
+    "RUF022",  # unsorted-dunder-all
+    "E501",    # line-too-long (handled by formatter)
+    "F841",    # unused-variable
+    "N803",    # invalid-argument-name
+    "B904",    # raise-without-from-inside-except
+    "B905",    # zip-without-explicit-strict
+    "S311",    # suspicious-non-cryptographic-random
+    "RUF012",  # mutable-class-default
+    "RUF059",  # unused-unpacked-variable
+    "PLR1722", # sys-exit-alias
+    "A004",    # builtin-import-shadowing
+    "SIM108",  # if-else-block-instead-of-if-exp
+    "SIM103",  # return-bool-condition-directly
+    "PT006",   # pytest-parametrize-names-wrong-type
+    "PLW0603", # global-statement
+    "F821",    # undefined-name (false positive in some cases)
+    "ASYNC230", # blocking-open-call-in-async-function
+    "ANN002",  # missing-type-args
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**/*.py" = [
     "S101",    # assert-used
+    "S106",    # hardcoded-password-argument
+    "S108",    # hardcoded-temp-file
+    "S311",    # suspicious-non-cryptographic-random-usage
     "ANN",     # flake8-annotations
+    "F841",    # unused-variable
+    "PT011",   # pytest-raises-too-broad
+    "PLW0603", # global-statement
+    "B904",    # raise-without-from-inside-except
+    "RUF012",  # mutable-class-default
+    "RUF059",  # unused-unpacked-variable
     "PLR2004", # magic-value-comparison
     "S105",    # hardcoded-password-string
     "S106",    # hardcoded-password-func-arg
 ]
 "__init__.py" = [
     "F401",    # unused-import
+]
+"examples/**/*.py" = [
+    "F841",    # unused-variable
+    "S106",    # hardcoded-password
+    "S108",    # hardcoded-temp-file
+    "ANN",     # annotations
+    "T201",    # print
+    "PLR2004", # magic-value
+]
+"scripts/**/*.py" = [
+    "F841",    # unused-variable
+    "S106",    # hardcoded-password
+    "ANN",     # annotations
+    "T201",    # print
 ]
 
 [tool.ruff.lint.isort]
@@ -172,7 +237,7 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true

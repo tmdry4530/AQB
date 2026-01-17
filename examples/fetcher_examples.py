@@ -108,9 +108,9 @@ async def example_fetch_funding_rate():
 
         # Interpret funding rate
         if funding.rate > 0:
-            print(f"  Direction:         Longs pay shorts (bullish sentiment)")
+            print("  Direction:         Longs pay shorts (bullish sentiment)")
         else:
-            print(f"  Direction:         Shorts pay longs (bearish sentiment)")
+            print("  Direction:         Shorts pay longs (bearish sentiment)")
 
 
 async def example_fetch_date_range():
@@ -149,7 +149,7 @@ async def example_fetch_date_range():
         lows = [bar.low for bar in bars]
         volumes = [bar.volume for bar in bars]
 
-        print(f"\nWeek Statistics:")
+        print("\nWeek Statistics:")
         print(f"  Highest Price:  {max(highs):,.2f}")
         print(f"  Lowest Price:   {min(lows):,.2f}")
         print(f"  Avg Volume:     {sum(volumes) / len(volumes):,.2f}")
@@ -215,7 +215,7 @@ async def example_convenience_functions():
 
     # Fetch ticker
     ticker = await fetch_latest_ticker("BTC/USDT")
-    print(f"\nFetched ticker using fetch_latest_ticker()")
+    print("\nFetched ticker using fetch_latest_ticker()")
     print(f"Current price: {ticker.last:,.2f}")
 
 

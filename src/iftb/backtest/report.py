@@ -7,12 +7,11 @@ Generates comprehensive reports from backtest results including:
 - Performance visualizations
 """
 
-import json
 from datetime import datetime
+import json
 from pathlib import Path
-from typing import Optional
 
-from iftb.backtest.engine import BacktestResult, BacktestMetrics
+from iftb.backtest.engine import BacktestResult
 from iftb.utils import get_logger
 
 logger = get_logger(__name__)
@@ -87,12 +86,12 @@ class BacktestReporter:
         # Sharpe ratio assessment
         print(f"\n{'Assessment':}")
         if m.sharpe_ratio >= 1.5:
-            print(f"  ✅ Sharpe Ratio meets target (≥1.5)")
+            print("  ✅ Sharpe Ratio meets target (≥1.5)")
         else:
             print(f"  ⚠️ Sharpe Ratio below target ({m.sharpe_ratio:.2f} < 1.5)")
 
         if m.max_drawdown_pct <= 0.15:
-            print(f"  ✅ Max Drawdown acceptable (≤15%)")
+            print("  ✅ Max Drawdown acceptable (≤15%)")
         else:
             print(f"  ⚠️ Max Drawdown high ({m.max_drawdown_pct:.2%} > 15%)")
 
@@ -172,8 +171,8 @@ class BacktestReporter:
         report.append(f"\n**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')} UTC\n")
 
         report.append("## Configuration\n")
-        report.append(f"| Parameter | Value |")
-        report.append(f"|-----------|-------|")
+        report.append("| Parameter | Value |")
+        report.append("|-----------|-------|")
         report.append(f"| Symbol | {c.symbol} |")
         report.append(f"| Period | {c.start_date.date()} to {c.end_date.date()} |")
         report.append(f"| Initial Capital | ${c.initial_capital:,.2f} |")
@@ -182,8 +181,8 @@ class BacktestReporter:
         report.append(f"| Taker Fee | {c.taker_fee:.4%} |")
 
         report.append("\n## Performance Summary\n")
-        report.append(f"| Metric | Value |")
-        report.append(f"|--------|-------|")
+        report.append("| Metric | Value |")
+        report.append("|--------|-------|")
         report.append(f"| Final Balance | ${self.result.final_balance:,.2f} |")
         report.append(f"| Total Return | ${m.total_return:,.2f} ({m.total_return_pct:.2%}) |")
         report.append(f"| Annualized Return | {m.annualized_return:.2%} |")
@@ -191,16 +190,16 @@ class BacktestReporter:
         report.append(f"| Volatility | {m.volatility:.2%} |")
 
         report.append("\n## Risk-Adjusted Returns\n")
-        report.append(f"| Ratio | Value | Target | Status |")
-        report.append(f"|-------|-------|--------|--------|")
+        report.append("| Ratio | Value | Target | Status |")
+        report.append("|-------|-------|--------|--------|")
         sharpe_status = "✅" if m.sharpe_ratio >= 1.5 else "⚠️"
         report.append(f"| Sharpe Ratio | {m.sharpe_ratio:.4f} | ≥1.5 | {sharpe_status} |")
         report.append(f"| Sortino Ratio | {m.sortino_ratio:.4f} | - | - |")
         report.append(f"| Calmar Ratio | {m.calmar_ratio:.4f} | - | - |")
 
         report.append("\n## Trade Statistics\n")
-        report.append(f"| Metric | Value |")
-        report.append(f"|--------|-------|")
+        report.append("| Metric | Value |")
+        report.append("|--------|-------|")
         report.append(f"| Total Trades | {m.total_trades} |")
         report.append(f"| Win Rate | {m.win_rate:.2%} |")
         report.append(f"| Profit Factor | {m.profit_factor:.2f} |")

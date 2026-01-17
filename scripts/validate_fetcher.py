@@ -7,12 +7,11 @@ it meets all requirements without requiring full dependency installation.
 """
 
 import ast
-import sys
 from pathlib import Path
-from typing import Dict, List, Set
+import sys
 
 
-def extract_classes_and_methods(tree: ast.Module) -> Dict[str, List[str]]:
+def extract_classes_and_methods(tree: ast.Module) -> dict[str, list[str]]:
     """Extract classes and their methods from AST."""
     classes = {}
 
@@ -28,7 +27,7 @@ def extract_classes_and_methods(tree: ast.Module) -> Dict[str, List[str]]:
     return classes
 
 
-def extract_dataclasses(tree: ast.Module) -> Set[str]:
+def extract_dataclasses(tree: ast.Module) -> set[str]:
     """Extract dataclass names from AST."""
     dataclasses = set()
 
@@ -56,7 +55,7 @@ def validate_fetcher_module():
     print(f"\nReading module from: {fetcher_path}")
 
     # Read and parse the module
-    with open(fetcher_path, "r") as f:
+    with open(fetcher_path) as f:
         content = f.read()
 
     try:
@@ -216,16 +215,15 @@ def validate_fetcher_module():
         print("\n✓ All validation checks passed!")
         print("\nThe fetcher module is complete and production-ready.")
         return True
-    else:
-        print(f"\n✗ {checks_total - checks_passed} validation check(s) failed")
-        return False
+    print(f"\n✗ {checks_total - checks_passed} validation check(s) failed")
+    return False
 
 
 def print_module_info():
     """Print additional module information."""
     fetcher_path = Path(__file__).parent.parent / "src" / "iftb" / "data" / "fetcher.py"
 
-    with open(fetcher_path, "r") as f:
+    with open(fetcher_path) as f:
         content = f.read()
 
     lines = content.split("\n")

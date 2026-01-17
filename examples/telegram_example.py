@@ -12,8 +12,7 @@ import asyncio
 from datetime import datetime
 
 from iftb.data.telegram import NewsMessage, create_collector_from_settings
-from iftb.utils import get_logger, setup_logging, LogConfig
-
+from iftb.utils import LogConfig, get_logger, setup_logging
 
 # Setup logging
 config = LogConfig(

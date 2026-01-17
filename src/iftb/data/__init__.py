@@ -33,7 +33,6 @@ from .fetcher import (
 )
 from .storage import (
     DatabaseManager,
-    OHLCVBar as StorageOHLCVBar,
     OHLCVRepository,
     Position,
     PositionRepository,
@@ -42,6 +41,9 @@ from .storage import (
     Trade,
     TradeRepository,
     TradeStatistics,
+)
+from .storage import (
+    OHLCVBar as StorageOHLCVBar,
 )
 from .telegram import (
     NewsMessage,
@@ -60,8 +62,8 @@ from .websocket import (
     ConnectionState,
     DepthMessage,
     KlineMessage,
-    MarkPriceMessage,
     MarketDataStreamer,
+    MarkPriceMessage,
     MiniTickerMessage,
     RealTimeDataManager,
     StreamConfig,

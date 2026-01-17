@@ -8,8 +8,7 @@ leverage limits, capital protection, circuit breakers, and performance targets.
 All constants are immutable (Final) to prevent accidental modification during runtime.
 """
 
-from typing import Final, List
-
+from typing import Final
 
 # =============================================================================
 # Kelly Criterion Limits
@@ -219,13 +218,13 @@ Default timeframe for technical analysis and trading signals.
 1-hour candles provide balance between noise reduction and responsiveness.
 """
 
-SUPPORTED_SYMBOLS: Final[List[str]] = ["BTCUSDT", "ETHUSDT"]
+SUPPORTED_SYMBOLS: Final[list[str]] = ["BTCUSDT", "ETHUSDT"]
 """
 List of cryptocurrency trading pairs supported by the system.
 Currently limited to Bitcoin and Ethereum against USDT.
 """
 
-SUPPORTED_EXCHANGES: Final[List[str]] = ["binance"]
+SUPPORTED_EXCHANGES: Final[list[str]] = ["binance"]
 """
 List of supported cryptocurrency exchanges.
 Currently only Binance is integrated.

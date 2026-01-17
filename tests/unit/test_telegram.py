@@ -5,9 +5,8 @@ Tests the TelegramNewsCollector class including message parsing,
 urgent detection, and message queue management.
 """
 
-import asyncio
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+from datetime import UTC, datetime
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -20,7 +19,7 @@ class TestNewsMessage:
     def test_news_message_creation(self) -> None:
         """Test creating a NewsMessage instance."""
         msg = NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Breaking: Bitcoin reaches new ATH",
             channel="CryptoNews",
             channel_id=123456,
@@ -38,7 +37,7 @@ class TestNewsMessage:
     def test_news_message_repr(self) -> None:
         """Test string representation of NewsMessage."""
         msg = NewsMessage(
-            timestamp=datetime(2024, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            timestamp=datetime(2024, 1, 1, 12, 0, 0, tzinfo=UTC),
             text="Test message",
             channel="TestChannel",
             channel_id=123,
@@ -174,7 +173,7 @@ class TestTelegramNewsCollector:
         mock_message.caption = None
         mock_message.id = 999
         mock_message.media = None
-        mock_message.forward_date = datetime.now(timezone.utc)
+        mock_message.forward_date = datetime.now(UTC)
         mock_message.chat = MagicMock()
         mock_message.chat.id = 111
 
@@ -188,7 +187,7 @@ class TestTelegramNewsCollector:
         # Add some test messages
         for i in range(5):
             msg = NewsMessage(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 text=f"Message {i}",
                 channel="TestChannel",
                 channel_id=123,
@@ -214,7 +213,7 @@ class TestTelegramNewsCollector:
         """Test generating summary with messages."""
         # Add test messages
         msg1 = NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Breaking: Important news",
             channel="Channel1",
             channel_id=123,
@@ -225,7 +224,7 @@ class TestTelegramNewsCollector:
             keywords=["breaking"],
         )
         msg2 = NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Regular update",
             channel="Channel2",
             channel_id=456,
@@ -251,7 +250,7 @@ class TestTelegramNewsCollector:
         # Add test messages
         for i in range(3):
             msg = NewsMessage(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 text=f"Message {i}",
                 channel="TestChannel",
                 channel_id=123,
@@ -274,7 +273,7 @@ class TestTelegramNewsCollector:
         assert collector.message_count == 0
 
         msg = NewsMessage(
-            timestamp=datetime.now(timezone.utc),
+            timestamp=datetime.now(UTC),
             text="Test",
             channel="Test",
             channel_id=123,

@@ -6,8 +6,7 @@ system health, and operational metrics via Prometheus.
 """
 
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import Optional
+from datetime import UTC, datetime
 
 from prometheus_client import (
     CollectorRegistry,
@@ -17,9 +16,7 @@ from prometheus_client import (
     Info,
     generate_latest,
     start_http_server,
-    CONTENT_TYPE_LATEST,
 )
-
 
 # Create a custom registry for IFTB metrics
 REGISTRY = CollectorRegistry()
@@ -447,7 +444,7 @@ class MetricsManager:
             port: Port for Prometheus metrics endpoint
         """
         self.port = port
-        self._start_time = datetime.now(timezone.utc)
+        self._start_time = datetime.now(UTC)
         self._server_started = False
 
         # Set system info
@@ -485,7 +482,7 @@ class MetricsManager:
 
     def update_uptime(self) -> None:
         """Update the process uptime metric."""
-        uptime = (datetime.now(timezone.utc) - self._start_time).total_seconds()
+        uptime = (datetime.now(UTC) - self._start_time).total_seconds()
         PROCESS_UPTIME.set(uptime)
 
     # =========================================================================
@@ -523,7 +520,7 @@ class MetricsManager:
     def update_position(
         self,
         symbol: str,
-        side: Optional[str],
+        side: str | None,
         size: float,
         pnl: float,
     ) -> None:
@@ -610,7 +607,7 @@ class MetricsManager:
         symbol: str,
         sentiment: float,
         veto: bool = False,
-        veto_reason: Optional[str] = None,
+        veto_reason: str | None = None,
     ) -> None:
         """Record LLM sentiment analysis."""
         LLM_SENTIMENT.labels(symbol=symbol).set(sentiment)
@@ -638,7 +635,7 @@ class MetricsManager:
         action: str,
         latency_seconds: float,
         vetoed: bool = False,
-        veto_source: Optional[str] = None,
+        veto_source: str | None = None,
     ) -> None:
         """Record a trading decision."""
         DECISIONS_TOTAL.labels(symbol=symbol, action=action).inc()
@@ -717,10 +714,10 @@ class MetricsManager:
 
     def update_market_sentiment(
         self,
-        fear_greed: Optional[int] = None,
-        funding_rate: Optional[dict] = None,
-        open_interest: Optional[dict] = None,
-        long_short_ratio: Optional[dict] = None,
+        fear_greed: int | None = None,
+        funding_rate: dict | None = None,
+        open_interest: dict | None = None,
+        long_short_ratio: dict | None = None,
     ) -> None:
         """Update market sentiment metrics."""
         if fear_greed is not None:
@@ -782,7 +779,7 @@ async def measure_latency(histogram: Histogram, labels: dict):
 # Singleton Instance
 # =============================================================================
 
-_metrics_manager: Optional[MetricsManager] = None
+_metrics_manager: MetricsManager | None = None
 
 
 def get_metrics_manager(port: int = 8000) -> MetricsManager:

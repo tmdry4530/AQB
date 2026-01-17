@@ -8,14 +8,14 @@ Provides streaming market data via WebSocket connections with:
 - Health monitoring and heartbeat handling
 """
 
-import asyncio
-import json
-import time
 from abc import ABC, abstractmethod
+import asyncio
 from collections.abc import AsyncIterator, Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
+import json
+import time
 from typing import Any
 
 import websockets
@@ -74,31 +74,30 @@ class StreamConfig:
                 raise ValueError("Interval required for kline stream")
             return f"{symbol_lower}@kline_{self.interval}"
 
-        elif self.stream_type == StreamType.TICKER:
+        if self.stream_type == StreamType.TICKER:
             return f"{symbol_lower}@ticker"
 
-        elif self.stream_type == StreamType.MINI_TICKER:
+        if self.stream_type == StreamType.MINI_TICKER:
             return f"{symbol_lower}@miniTicker"
 
-        elif self.stream_type == StreamType.AGG_TRADE:
+        if self.stream_type == StreamType.AGG_TRADE:
             return f"{symbol_lower}@aggTrade"
 
-        elif self.stream_type == StreamType.DEPTH:
+        if self.stream_type == StreamType.DEPTH:
             level = self.depth_level or 20
             speed = self.update_speed or "100ms"
             return f"{symbol_lower}@depth{level}@{speed}"
 
-        elif self.stream_type == StreamType.BOOK_TICKER:
+        if self.stream_type == StreamType.BOOK_TICKER:
             return f"{symbol_lower}@bookTicker"
 
-        elif self.stream_type == StreamType.MARK_PRICE:
+        if self.stream_type == StreamType.MARK_PRICE:
             return f"{symbol_lower}@markPrice"
 
-        elif self.stream_type == StreamType.FUNDING_RATE:
+        if self.stream_type == StreamType.FUNDING_RATE:
             return f"{symbol_lower}@markPrice"  # Funding rate comes with mark price
 
-        else:
-            raise ValueError(f"Unknown stream type: {self.stream_type}")
+        raise ValueError(f"Unknown stream type: {self.stream_type}")
 
 
 @dataclass
@@ -117,7 +116,7 @@ class KlineMessage:
     quote_volume: float
     trades: int
     is_closed: bool
-    received_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    received_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @classmethod
     def from_ws_message(cls, data: dict[str, Any]) -> "KlineMessage":
@@ -159,7 +158,7 @@ class TickerMessage:
     first_trade_id: int
     last_trade_id: int
     trade_count: int
-    received_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    received_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @classmethod
     def from_ws_message(cls, data: dict[str, Any]) -> "TickerMessage":
@@ -195,7 +194,7 @@ class MiniTickerMessage:
     low_price: float
     base_volume: float
     quote_volume: float
-    received_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    received_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @classmethod
     def from_ws_message(cls, data: dict[str, Any]) -> "MiniTickerMessage":
@@ -223,7 +222,7 @@ class AggTradeMessage:
     last_trade_id: int
     trade_time: int
     is_buyer_maker: bool
-    received_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    received_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @classmethod
     def from_ws_message(cls, data: dict[str, Any]) -> "AggTradeMessage":
@@ -250,7 +249,7 @@ class BookTickerMessage:
     best_ask_price: float
     best_ask_qty: float
     transaction_time: int
-    received_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    received_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @classmethod
     def from_ws_message(cls, data: dict[str, Any]) -> "BookTickerMessage":
@@ -275,7 +274,7 @@ class MarkPriceMessage:
     estimated_settle_price: float
     funding_rate: float
     next_funding_time: int
-    received_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    received_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @classmethod
     def from_ws_message(cls, data: dict[str, Any]) -> "MarkPriceMessage":
@@ -299,7 +298,7 @@ class DepthMessage:
     final_update_id: int
     bids: list[tuple[float, float]]  # [(price, quantity), ...]
     asks: list[tuple[float, float]]  # [(price, quantity), ...]
-    received_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    received_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     @classmethod
     def from_ws_message(cls, data: dict[str, Any]) -> "DepthMessage":
@@ -397,12 +396,10 @@ class BaseWebSocketClient(ABC):
     @abstractmethod
     def _build_url(self) -> str:
         """Build the WebSocket URL. Implemented by subclasses."""
-        pass
 
     @abstractmethod
     def _parse_message(self, raw_data: str) -> WSMessage | None:
         """Parse raw WebSocket message. Implemented by subclasses."""
-        pass
 
     async def connect(self) -> None:
         """Establish WebSocket connection."""
@@ -559,7 +556,7 @@ class BaseWebSocketClient(ABC):
                             error=str(e),
                         )
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 continue
             except asyncio.CancelledError:
                 break
@@ -604,7 +601,7 @@ class BaseWebSocketClient(ABC):
                     timeout=1.0,
                 )
                 yield message
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 if not self._running:
                     break
             except asyncio.CancelledError:
@@ -638,9 +635,8 @@ class BinanceFuturesWebSocket(BaseWebSocketClient):
         """Build combined streams WebSocket URL."""
         if len(self._stream_names) == 1:
             return f"{self.base_url}/ws/{self._stream_names[0]}"
-        else:
-            combined = "/".join(self._stream_names)
-            return f"{self.base_url}/stream?streams={combined}"
+        combined = "/".join(self._stream_names)
+        return f"{self.base_url}/stream?streams={combined}"
 
     def _parse_message(self, raw_data: str) -> WSMessage | None:
         """Parse Binance WebSocket message."""
@@ -661,21 +657,20 @@ class BinanceFuturesWebSocket(BaseWebSocketClient):
 
             if event_type == "kline":
                 return KlineMessage.from_ws_message(payload)
-            elif event_type == "24hrTicker":
+            if event_type == "24hrTicker":
                 return TickerMessage.from_ws_message(payload)
-            elif event_type == "24hrMiniTicker":
+            if event_type == "24hrMiniTicker":
                 return MiniTickerMessage.from_ws_message(payload)
-            elif event_type == "aggTrade":
+            if event_type == "aggTrade":
                 return AggTradeMessage.from_ws_message(payload)
-            elif event_type == "bookTicker":
+            if event_type == "bookTicker":
                 return BookTickerMessage.from_ws_message(payload)
-            elif event_type == "markPriceUpdate":
+            if event_type == "markPriceUpdate":
                 return MarkPriceMessage.from_ws_message(payload)
-            elif event_type == "depthUpdate":
+            if event_type == "depthUpdate":
                 return DepthMessage.from_ws_message(payload)
-            else:
-                logger.debug("websocket_unknown_event", event_type=event_type)
-                return None
+            logger.debug("websocket_unknown_event", event_type=event_type)
+            return None
 
         except json.JSONDecodeError as e:
             logger.warning("websocket_json_decode_error", error=str(e))
@@ -1104,7 +1099,7 @@ async def create_market_streamer(
 async def _example_usage() -> None:
     """Example demonstrating WebSocket streaming."""
     # Setup logging
-    from iftb.utils import setup_logging, LogConfig
+    from iftb.utils import LogConfig, setup_logging
 
     setup_logging(LogConfig(level="DEBUG", format="pretty"))
 

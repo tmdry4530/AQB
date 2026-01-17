@@ -6,9 +6,8 @@ for different configuration domains.
 """
 
 from functools import lru_cache
-from typing import Optional
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -49,7 +48,7 @@ class RedisSettings(BaseSettings):
 
     host: str = Field(default="localhost", description="Redis host")
     port: int = Field(default=6379, description="Redis port")
-    password: Optional[SecretStr] = Field(default=None, description="Redis password")
+    password: SecretStr | None = Field(default=None, description="Redis password")
     db: int = Field(default=0, description="Redis database number")
 
     model_config = SettingsConfigDict(
@@ -189,7 +188,7 @@ class LoggingSettings(BaseSettings):
         default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         description="Log format string",
     )
-    file_path: Optional[str] = Field(
+    file_path: str | None = Field(
         default=None, description="Optional log file path"
     )
 

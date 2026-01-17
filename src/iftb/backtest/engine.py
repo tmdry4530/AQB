@@ -15,28 +15,27 @@ Key Features:
 - Monte Carlo simulation for robustness testing
 """
 
-import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
-from typing import Callable, Literal
+from datetime import datetime, timedelta
 import statistics
+from typing import Literal
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
-from iftb.analysis import TechnicalAnalyzer, CompositeSignal
+from iftb.analysis import TechnicalAnalyzer
 from iftb.analysis.llm_analyzer import LLMAnalysis, SentimentScore
 from iftb.analysis.ml_model import ModelPrediction
 from iftb.data import MarketContext
 from iftb.trading import (
-    DecisionEngine,
-    RiskManager,
     CircuitBreaker,
+    DecisionEngine,
     KillSwitch,
-    TradingDecision,
+    RiskManager,
     TradeHistory,
+    TradingDecision,
 )
-from iftb.trading.executor import PaperTrader, Order, PositionState
+from iftb.trading.executor import Order, PaperTrader, PositionState
 from iftb.utils import get_logger
 
 logger = get_logger(__name__)
@@ -231,8 +230,8 @@ class BacktestEngine:
         logger.info(
             "backtest_started",
             data_rows=len(data),
-            start=data['timestamp'].iloc[0] if len(data) > 0 else None,
-            end=data['timestamp'].iloc[-1] if len(data) > 0 else None,
+            start=data["timestamp"].iloc[0] if len(data) > 0 else None,
+            end=data["timestamp"].iloc[-1] if len(data) > 0 else None,
         )
 
         # Validate data
@@ -242,15 +241,15 @@ class BacktestEngine:
             )
 
         # Initialize equity tracking
-        self.equity_history = [(data['timestamp'].iloc[0], self.config.initial_capital)]
+        self.equity_history = [(data["timestamp"].iloc[0], self.config.initial_capital)]
 
         # Main backtest loop
         for i in range(self.config.warmup_periods, len(data)):
             # Get data window for analysis
             window = data.iloc[i - self.config.warmup_periods:i + 1].copy()
             current_bar = data.iloc[i]
-            current_time = current_bar['timestamp']
-            current_price = float(current_bar['close'])
+            current_time = current_bar["timestamp"]
+            current_price = float(current_bar["close"])
 
             # Update position with current price
             if self.current_position:
@@ -280,16 +279,16 @@ class BacktestEngine:
 
         # Close any remaining position at end of backtest
         if self.current_position:
-            final_price = float(data.iloc[-1]['close'])
-            final_time = data.iloc[-1]['timestamp']
+            final_price = float(data.iloc[-1]["close"])
+            final_time = data.iloc[-1]["timestamp"]
             await self._close_position(final_price, final_time, "end_of_data")
 
         # Calculate metrics
         metrics = self._calculate_metrics()
 
         # Build equity curve DataFrame
-        equity_df = pd.DataFrame(self.equity_history, columns=['timestamp', 'equity'])
-        equity_df['drawdown'] = self._calculate_drawdown_series(equity_df['equity'])
+        equity_df = pd.DataFrame(self.equity_history, columns=["timestamp", "equity"])
+        equity_df["drawdown"] = self._calculate_drawdown_series(equity_df["equity"])
 
         result = BacktestResult(
             config=self.config,
@@ -428,18 +427,13 @@ class BacktestEngine:
         if not self.current_position:
             return False
 
-        high = float(current_bar['high'])
-        low = float(current_bar['low'])
-        close = float(current_bar['close'])
+        high = float(current_bar["high"])
+        low = float(current_bar["low"])
+        close = float(current_bar["close"])
 
         # Check stop-loss
         if self.current_position.stop_loss:
-            if self.current_position.side == "long" and low <= self.current_position.stop_loss:
-                await self._close_position(
-                    self.current_position.stop_loss, current_time, "stop_loss"
-                )
-                return True
-            elif self.current_position.side == "short" and high >= self.current_position.stop_loss:
+            if (self.current_position.side == "long" and low <= self.current_position.stop_loss) or (self.current_position.side == "short" and high >= self.current_position.stop_loss):
                 await self._close_position(
                     self.current_position.stop_loss, current_time, "stop_loss"
                 )
@@ -447,12 +441,7 @@ class BacktestEngine:
 
         # Check take-profit
         if self.current_position.take_profit:
-            if self.current_position.side == "long" and high >= self.current_position.take_profit:
-                await self._close_position(
-                    self.current_position.take_profit, current_time, "take_profit"
-                )
-                return True
-            elif self.current_position.side == "short" and low <= self.current_position.take_profit:
+            if (self.current_position.side == "long" and high >= self.current_position.take_profit) or (self.current_position.side == "short" and low <= self.current_position.take_profit):
                 await self._close_position(
                     self.current_position.take_profit, current_time, "take_profit"
                 )

@@ -7,13 +7,11 @@ comprehensive risk management.
 """
 
 import asyncio
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pandas as pd
 
 from iftb.analysis import (
-    CompositeSignal,
-    IndicatorResult,
     LLMAnalysis,
     ModelPrediction,
     SentimentScore,
@@ -70,7 +68,7 @@ async def main():
         key_factors=["Institutional adoption", "Technical breakout"],
         risks=["Regulatory uncertainty"],
         recommended_action="LONG",
-        timestamp=datetime.now(timezone.utc),
+        timestamp=datetime.now(UTC),
         model="claude-3-7-sonnet-20250219",
     )
     print(f"   LLM Sentiment: {llm_analysis.sentiment}")
@@ -91,7 +89,7 @@ async def main():
             "volatility": 0.10,
         },
         model_version="v1.0.0",
-        prediction_time=datetime.now(timezone.utc),
+        prediction_time=datetime.now(UTC),
     )
     print(f"   ML Prediction: {ml_prediction.action}")
     print(f"   ML Confidence: {ml_prediction.confidence:.2f}")
@@ -102,10 +100,10 @@ async def main():
         funding=None,
         open_interest=None,
         long_short=None,
-        fetch_time=datetime.now(timezone.utc),
+        fetch_time=datetime.now(UTC),
         errors=[],
     )
-    print(f"   Market Context: OK")
+    print("   Market Context: OK")
     print()
 
     # =========================================================================
@@ -130,8 +128,8 @@ async def main():
             leverage=5,
             pnl=125.0,
             pnl_pct=2.5,
-            entry_time=datetime.now(timezone.utc),
-            exit_time=datetime.now(timezone.utc),
+            entry_time=datetime.now(UTC),
+            exit_time=datetime.now(UTC),
             win=True,
         ),
         TradeHistory(
@@ -143,8 +141,8 @@ async def main():
             leverage=5,
             pnl=-25.0,
             pnl_pct=-0.5,
-            entry_time=datetime.now(timezone.utc),
-            exit_time=datetime.now(timezone.utc),
+            entry_time=datetime.now(UTC),
+            exit_time=datetime.now(UTC),
             win=False,
         ),
     ]

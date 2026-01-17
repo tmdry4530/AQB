@@ -8,9 +8,9 @@ Tests complete backtesting workflows including:
 - Trade logging
 """
 
-import pytest
-from datetime import datetime, timedelta
 from decimal import Decimal
+
+import pytest
 
 
 @pytest.mark.e2e

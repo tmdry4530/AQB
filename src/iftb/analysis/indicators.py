@@ -28,7 +28,6 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 
-
 SignalType = Literal["BULLISH", "BEARISH", "NEUTRAL"]
 
 
@@ -91,7 +90,7 @@ class TechnicalAnalyzer:
 
     def _validate_data(self) -> None:
         """Validate OHLCV data format and required columns."""
-        required_cols = {'open', 'high', 'low', 'close', 'volume'}
+        required_cols = {"open", "high", "low", "close", "volume"}
         if not required_cols.issubset(self.data.columns):
             raise ValueError(f"Data must contain columns: {required_cols}")
 
@@ -100,10 +99,10 @@ class TechnicalAnalyzer:
 
     def _precompute_common(self) -> None:
         """Precompute commonly used values for efficiency."""
-        self.data['hl2'] = (self.data['high'] + self.data['low']) / 2
-        self.data['hlc3'] = (self.data['high'] + self.data['low'] + self.data['close']) / 3
-        self.data['ohlc4'] = (self.data['open'] + self.data['high'] +
-                              self.data['low'] + self.data['close']) / 4
+        self.data["hl2"] = (self.data["high"] + self.data["low"]) / 2
+        self.data["hlc3"] = (self.data["high"] + self.data["low"] + self.data["close"]) / 3
+        self.data["ohlc4"] = (self.data["open"] + self.data["high"] +
+                              self.data["low"] + self.data["close"]) / 4
 
     # ==================== RSI ====================
 
@@ -118,7 +117,7 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with RSI value and signal
         """
-        delta = self.data['close'].diff()
+        delta = self.data["close"].diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
 
@@ -160,8 +159,8 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with MACD values and signal
         """
-        ema_fast = self.data['close'].ewm(span=fast, adjust=False).mean()
-        ema_slow = self.data['close'].ewm(span=slow, adjust=False).mean()
+        ema_fast = self.data["close"].ewm(span=fast, adjust=False).mean()
+        ema_slow = self.data["close"].ewm(span=slow, adjust=False).mean()
 
         macd_line = ema_fast - ema_slow
         signal_line = macd_line.ewm(span=signal, adjust=False).mean()
@@ -213,13 +212,13 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with band values and signal
         """
-        sma = self.data['close'].rolling(window=period).mean()
-        std = self.data['close'].rolling(window=period).std()
+        sma = self.data["close"].rolling(window=period).mean()
+        std = self.data["close"].rolling(window=period).std()
 
         upper_band = sma + (std * std_dev)
         lower_band = sma - (std * std_dev)
 
-        current_close = self.data['close'].iloc[-1]
+        current_close = self.data["close"].iloc[-1]
         current_upper = upper_band.iloc[-1]
         current_lower = lower_band.iloc[-1]
         current_sma = sma.iloc[-1]
@@ -265,9 +264,9 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with ATR value and signal
         """
-        high = self.data['high']
-        low = self.data['low']
-        close = self.data['close']
+        high = self.data["high"]
+        low = self.data["low"]
+        close = self.data["close"]
 
         tr1 = high - low
         tr2 = abs(high - close.shift())
@@ -309,9 +308,9 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with ADX value and signal
         """
-        high = self.data['high']
-        low = self.data['low']
-        close = self.data['close']
+        high = self.data["high"]
+        low = self.data["low"]
+        close = self.data["close"]
 
         # Calculate +DM and -DM
         plus_dm = high.diff()
@@ -379,10 +378,10 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with stochastic values and signal
         """
-        low_min = self.data['low'].rolling(window=k_period).min()
-        high_max = self.data['high'].rolling(window=k_period).max()
+        low_min = self.data["low"].rolling(window=k_period).min()
+        high_max = self.data["high"].rolling(window=k_period).max()
 
-        k_fast = 100 * (self.data['close'] - low_min) / (high_max - low_min)
+        k_fast = 100 * (self.data["close"] - low_min) / (high_max - low_min)
         k_slow = k_fast.rolling(window=smooth_k).mean()
         d_slow = k_slow.rolling(window=d_period).mean()
 
@@ -430,7 +429,7 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with CCI value and signal
         """
-        tp = self.data['hlc3']
+        tp = self.data["hlc3"]
         sma = tp.rolling(window=period).mean()
         mad = tp.rolling(window=period).apply(lambda x: np.abs(x - x.mean()).mean())
 
@@ -469,10 +468,10 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with Williams %R value and signal
         """
-        high_max = self.data['high'].rolling(window=period).max()
-        low_min = self.data['low'].rolling(window=period).min()
+        high_max = self.data["high"].rolling(window=period).max()
+        low_min = self.data["low"].rolling(window=period).min()
 
-        williams_r = -100 * (high_max - self.data['close']) / (high_max - low_min)
+        williams_r = -100 * (high_max - self.data["close"]) / (high_max - low_min)
         current_wr = williams_r.iloc[-1]
 
         # Signal generation
@@ -504,7 +503,7 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with OBV value and signal
         """
-        obv = (np.sign(self.data['close'].diff()) * self.data['volume']).fillna(0).cumsum()
+        obv = (np.sign(self.data["close"].diff()) * self.data["volume"]).fillna(0).cumsum()
 
         current_obv = obv.iloc[-1]
         obv_sma = obv.rolling(window=20).mean()
@@ -542,11 +541,11 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with VWAP value and signal
         """
-        typical_price = self.data['hlc3']
-        vwap = (typical_price * self.data['volume']).cumsum() / self.data['volume'].cumsum()
+        typical_price = self.data["hlc3"]
+        vwap = (typical_price * self.data["volume"]).cumsum() / self.data["volume"].cumsum()
 
         current_vwap = vwap.iloc[-1]
-        current_close = self.data['close'].iloc[-1]
+        current_close = self.data["close"].iloc[-1]
 
         # Signal based on price vs VWAP
         diff_pct = (current_close - current_vwap) / current_vwap * 100
@@ -589,9 +588,9 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with Ichimoku values and signal
         """
-        high = self.data['high']
-        low = self.data['low']
-        close = self.data['close']
+        high = self.data["high"]
+        low = self.data["low"]
+        close = self.data["close"]
 
         # Tenkan-sen (Conversion Line)
         tenkan_sen = (high.rolling(window=tenkan).max() +
@@ -678,8 +677,8 @@ class TechnicalAnalyzer:
             IndicatorResult with Fibonacci levels and signal
         """
         recent_data = self.data.tail(lookback)
-        swing_high = recent_data['high'].max()
-        swing_low = recent_data['low'].min()
+        swing_high = recent_data["high"].max()
+        swing_low = recent_data["low"].min()
 
         diff = swing_high - swing_low
 
@@ -694,7 +693,7 @@ class TechnicalAnalyzer:
             "1.0": swing_low
         }
 
-        current_close = self.data['close'].iloc[-1]
+        current_close = self.data["close"].iloc[-1]
 
         # Find closest level
         closest_level = min(levels.items(), key=lambda x: abs(x[1] - current_close))
@@ -741,8 +740,8 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with EMA values and signal
         """
-        ema_fast = self.data['close'].ewm(span=fast, adjust=False).mean()
-        ema_slow = self.data['close'].ewm(span=slow, adjust=False).mean()
+        ema_fast = self.data["close"].ewm(span=fast, adjust=False).mean()
+        ema_slow = self.data["close"].ewm(span=slow, adjust=False).mean()
 
         current_fast = ema_fast.iloc[-1]
         current_slow = ema_slow.iloc[-1]
@@ -800,24 +799,24 @@ class TechnicalAnalyzer:
         Returns:
             IndicatorResult with volume profile and signal
         """
-        price_min = self.data['low'].min()
-        price_max = self.data['high'].max()
+        price_min = self.data["low"].min()
+        price_max = self.data["high"].max()
 
         # Create price bins
         price_bins = np.linspace(price_min, price_max, bins + 1)
 
         # Assign each row to a bin
-        self.data['price_bin'] = pd.cut(self.data['close'], bins=price_bins,
+        self.data["price_bin"] = pd.cut(self.data["close"], bins=price_bins,
                                         labels=False, include_lowest=True)
 
         # Calculate volume per bin
-        volume_profile = self.data.groupby('price_bin')['volume'].sum()
+        volume_profile = self.data.groupby("price_bin")["volume"].sum()
 
         # Find Point of Control (POC) - price level with highest volume
         poc_bin = volume_profile.idxmax()
         poc_price = (price_bins[int(poc_bin)] + price_bins[int(poc_bin) + 1]) / 2
 
-        current_close = self.data['close'].iloc[-1]
+        current_close = self.data["close"].iloc[-1]
 
         # Value Area (70% of volume)
         total_volume = volume_profile.sum()
@@ -899,7 +898,7 @@ class TechnicalAnalyzer:
 
         # Default equal weights
         if weights is None:
-            weights = {name: 1.0 for name in indicators.keys()}
+            weights = dict.fromkeys(indicators.keys(), 1.0)
 
         # Normalize weights
         total_weight = sum(weights.values())
@@ -952,7 +951,7 @@ class TechnicalAnalyzer:
         Returns:
             Tuple of (trend_direction, trend_strength)
         """
-        close = self.data['close']
+        close = self.data["close"]
         sma = close.rolling(window=period).mean()
 
         current_close = close.iloc[-1]
@@ -989,14 +988,14 @@ class TechnicalAnalyzer:
         Returns:
             Dictionary with 'support' and 'resistance' level lists
         """
-        highs = self.data['high'].rolling(window=window, center=True).max()
-        lows = self.data['low'].rolling(window=window, center=True).min()
+        highs = self.data["high"].rolling(window=window, center=True).max()
+        lows = self.data["low"].rolling(window=window, center=True).min()
 
         # Find pivot highs (resistance)
-        resistance_pivots = self.data[self.data['high'] == highs]['high'].values
+        resistance_pivots = self.data[self.data["high"] == highs]["high"].values
 
         # Find pivot lows (support)
-        support_pivots = self.data[self.data['low'] == lows]['low'].values
+        support_pivots = self.data[self.data["low"] == lows]["low"].values
 
         # Cluster nearby levels
         def cluster_levels(levels: np.ndarray, tolerance: float) -> list[float]:

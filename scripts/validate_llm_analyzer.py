@@ -6,8 +6,8 @@ This script performs comprehensive checks to ensure the LLM analyzer
 is properly implemented and ready for use.
 """
 
-import sys
 from pathlib import Path
+import sys
 
 # Color codes for output
 GREEN = "\033[92m"
@@ -278,14 +278,13 @@ def main() -> int:
         print(f"\n{GREEN}✓ All validation checks passed!{RESET}")
         print(f"{GREEN}  The LLM Market Analyzer is properly implemented.{RESET}\n")
         return 0
-    elif percentage >= 90:
+    if percentage >= 90:
         print(f"\n{YELLOW}⚠ Most validation checks passed.{RESET}")
         print(f"{YELLOW}  Minor issues detected. Review failed checks.{RESET}\n")
         return 1
-    else:
-        print(f"\n{RED}✗ Validation failed.{RESET}")
-        print(f"{RED}  Multiple issues detected. Review implementation.{RESET}\n")
-        return 2
+    print(f"\n{RED}✗ Validation failed.{RESET}")
+    print(f"{RED}  Multiple issues detected. Review implementation.{RESET}\n")
+    return 2
 
 
 if __name__ == "__main__":

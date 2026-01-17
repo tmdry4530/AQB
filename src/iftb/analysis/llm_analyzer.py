@@ -44,21 +44,19 @@ Fallback Modes:
 """
 
 import asyncio
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from enum import Enum
 import hashlib
 import json
-from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta, timezone
-from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
-import httpx
 from anthropic import AsyncAnthropic
 from anthropic.types import Message
 
 from iftb.config import get_settings
 from iftb.config.constants import (
     CONFIDENCE_VETO_THRESHOLD,
-    NEWS_CONFLICT_PENALTY,
     SENTIMENT_CAUTION_THRESHOLD,
     SENTIMENT_VETO_THRESHOLD,
 )
@@ -114,7 +112,7 @@ class LLMAnalysis:
     summary: str
     key_factors: list[str]
     should_veto: bool
-    veto_reason: Optional[str]
+    veto_reason: str | None
     timestamp: datetime
     model: str
     prompt_tokens: int
@@ -270,7 +268,7 @@ class LLMAnalyzer:
         model: str = "claude-sonnet-4-20250514",
         max_tokens: int = 1000,
         cache_ttl: int = 300,
-        redis_client: Optional[RedisClient] = None,
+        redis_client: RedisClient | None = None,
     ) -> None:
         """
         Initialize LLM analyzer.
@@ -291,7 +289,7 @@ class LLMAnalyzer:
         self._client = AsyncAnthropic(api_key=api_key)
 
         # Initialize cache if Redis client provided
-        self._cache: Optional[LLMCache] = None
+        self._cache: LLMCache | None = None
         if redis_client:
             self._cache = LLMCache(redis_client)
 
@@ -301,8 +299,8 @@ class LLMAnalyzer:
 
         # Error tracking
         self._consecutive_errors = 0
-        self._last_error_time: Optional[datetime] = None
-        self._fallback_mode: Optional[FallbackMode] = None
+        self._last_error_time: datetime | None = None
+        self._fallback_mode: FallbackMode | None = None
 
         logger.info("llm_analyzer_initialized", model=model, cache_enabled=bool(redis_client))
 
@@ -517,13 +515,13 @@ Consider all factors: news sentiment, market metrics, and timing."""
                 key_factors=["API unavailable", "Conservative fallback mode"],
                 should_veto=False,
                 veto_reason=None,
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 model=self.model,
                 prompt_tokens=0,
                 completion_tokens=0,
             )
 
-        elif mode == FallbackMode.VETO_ALL:
+        if mode == FallbackMode.VETO_ALL:
             return LLMAnalysis(
                 sentiment=SentimentScore.VERY_BEARISH,
                 confidence=1.0,
@@ -531,25 +529,25 @@ Consider all factors: news sentiment, market metrics, and timing."""
                 key_factors=["API unavailable", "Veto all fallback mode"],
                 should_veto=True,
                 veto_reason="LLM API unavailable - vetoing all trades as safety measure",
-                timestamp=datetime.now(timezone.utc),
+                timestamp=datetime.now(UTC),
                 model=self.model,
                 prompt_tokens=0,
                 completion_tokens=0,
             )
 
-        else:  # CACHE_ONLY - this shouldn't be reached, but provide safe default
-            return LLMAnalysis(
-                sentiment=SentimentScore.NEUTRAL,
-                confidence=0.2,
-                summary=f"Cache-only mode for {symbol} - no cached data available",
-                key_factors=["No cache data", "Cache-only fallback mode"],
-                should_veto=True,
-                veto_reason="Cache-only mode with no cached data available",
-                timestamp=datetime.now(timezone.utc),
-                model=self.model,
-                prompt_tokens=0,
-                completion_tokens=0,
-            )
+        # CACHE_ONLY - this shouldn't be reached, but provide safe default
+        return LLMAnalysis(
+            sentiment=SentimentScore.NEUTRAL,
+            confidence=0.2,
+            summary=f"Cache-only mode for {symbol} - no cached data available",
+            key_factors=["No cache data", "Cache-only fallback mode"],
+            should_veto=True,
+            veto_reason="Cache-only mode with no cached data available",
+            timestamp=datetime.now(UTC),
+            model=self.model,
+            prompt_tokens=0,
+            completion_tokens=0,
+        )
 
     async def analyze_market(
         self,
@@ -627,7 +625,7 @@ Consider all factors: news sentiment, market metrics, and timing."""
                     key_factors=parsed["key_factors"],
                     should_veto=parsed.get("should_veto", False),
                     veto_reason=parsed.get("veto_reason"),
-                    timestamp=datetime.now(timezone.utc),
+                    timestamp=datetime.now(UTC),
                     model=self.model,
                     prompt_tokens=response.usage.input_tokens,
                     completion_tokens=response.usage.output_tokens,
@@ -663,7 +661,7 @@ Consider all factors: news sentiment, market metrics, and timing."""
 
             except Exception as e:
                 self._consecutive_errors += 1
-                self._last_error_time = datetime.now(timezone.utc)
+                self._last_error_time = datetime.now(UTC)
 
                 # Calculate backoff
                 backoff = min(
