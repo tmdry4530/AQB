@@ -41,6 +41,7 @@ class FearGreedData:
         classification: Human-readable classification
         timestamp: Data timestamp
     """
+
     value: int
     classification: str
     timestamp: datetime
@@ -61,6 +62,7 @@ class FundingData:
         predicted_rate: Predicted next funding rate
         next_funding_time: Timestamp of next funding settlement
     """
+
     symbol: str
     rate: float
     predicted_rate: float
@@ -76,6 +78,7 @@ class OpenInterestData:
         open_interest: Total open interest in USD
         oi_change_24h: 24-hour change in open interest (percentage)
     """
+
     symbol: str
     open_interest: float
     oi_change_24h: float
@@ -91,6 +94,7 @@ class LongShortData:
         short_ratio: Percentage of short positions (0-1)
         timestamp: Data timestamp
     """
+
     symbol: str
     long_ratio: float
     short_ratio: float
@@ -120,6 +124,7 @@ class MarketContext:
         fetch_time: Timestamp when data was fetched
         errors: List of errors encountered during fetching
     """
+
     fear_greed: FearGreedData | None = None
     funding: FundingData | None = None
     open_interest: OpenInterestData | None = None
@@ -650,9 +655,7 @@ class ExternalDataAggregator:
         self._cache = context
         self._cache_time = context.fetch_time
 
-        success_count = sum(
-            1 for x in [fear_greed, funding, oi, ls] if x is not None
-        )
+        success_count = sum(1 for x in [fear_greed, funding, oi, ls] if x is not None)
 
         logger.info(
             "market_context_fetched",

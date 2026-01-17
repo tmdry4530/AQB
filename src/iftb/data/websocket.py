@@ -695,9 +695,7 @@ class BinanceFuturesWebSocket(BaseWebSocketClient):
     async def unsubscribe(self, streams: list[StreamConfig]) -> None:
         """Unsubscribe from streams (requires reconnection)."""
         stream_names_to_remove = {s.to_stream_name() for s in streams}
-        self.streams = [
-            s for s in self.streams if s.to_stream_name() not in stream_names_to_remove
-        ]
+        self.streams = [s for s in self.streams if s.to_stream_name() not in stream_names_to_remove]
         self._stream_names = [s.to_stream_name() for s in self.streams]
 
         # Reconnect with remaining streams

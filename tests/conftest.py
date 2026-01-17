@@ -27,6 +27,7 @@ from iftb.config import Settings
 # Pytest Configuration
 # ============================================================================
 
+
 def pytest_configure(config):
     """Register custom markers."""
     config.addinivalue_line("markers", "unit: Unit tests")
@@ -40,6 +41,7 @@ def pytest_configure(config):
 # Event Loop Fixtures
 # ============================================================================
 
+
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for the test session."""
@@ -52,32 +54,37 @@ def event_loop():
 # Settings Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def test_settings() -> Settings:
     """Override settings for testing environment."""
+    from iftb.config.settings import (
+        DatabaseSettings,
+        ExchangeSettings,
+        LLMSettings,
+        LoggingSettings,
+        RedisSettings,
+        TradingSettings,
+    )
+    from pydantic import SecretStr
+
     return Settings(
-        # Database
-        DATABASE_URL="sqlite+aiosqlite:///:memory:",
-
-        # Redis
-        REDIS_HOST="localhost",
-        REDIS_PORT=6379,
-        REDIS_DB=1,  # Use different DB for tests
-
-        # API Keys (mocked)
-        ANTHROPIC_API_KEY="test-anthropic-key",
-
-        # Exchange
-        EXCHANGE_NAME="binance",
-        EXCHANGE_TESTNET=True,
-
-        # Environment
-        ENVIRONMENT="test",
-        DEBUG=True,
-
-        # Rate Limits
-        RATE_LIMIT_REQUESTS=100,
-        RATE_LIMIT_PERIOD=60,
+        database=DatabaseSettings(
+            host="localhost",
+            port=5432,
+            database="test_iftb",
+            username="test",
+            password=SecretStr("test"),
+        ),
+        redis=RedisSettings(host="localhost", port=6379, db=1),
+        exchange=ExchangeSettings(
+            api_key=SecretStr("test-api-key"),
+            api_secret=SecretStr("test-api-secret"),
+            testnet=True,
+        ),
+        llm=LLMSettings(anthropic_api_key=SecretStr("test-anthropic-key")),
+        trading=TradingSettings(),
+        logging=LoggingSettings(level="DEBUG"),
     )
 
 
@@ -85,14 +92,17 @@ def test_settings() -> Settings:
 # Database Fixtures
 # ============================================================================
 
+
 @pytest_asyncio.fixture
 async def async_engine(test_settings: Settings):
     """Create async database engine for testing."""
+    # Use SQLite for testing
+    db_url = "sqlite+aiosqlite:///:memory:"
     engine = create_async_engine(
-        test_settings.DATABASE_URL,
+        db_url,
         echo=False,
         poolclass=StaticPool,
-        connect_args={"check_same_thread": False} if "sqlite" in test_settings.DATABASE_URL else {},
+        connect_args={"check_same_thread": False},
     )
 
     # Create tables
@@ -131,6 +141,7 @@ async def db_session(async_session_maker) -> AsyncGenerator[AsyncSession, None]:
 # Redis Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def mock_redis() -> MagicMock:
     """Create mock Redis client."""
@@ -152,6 +163,7 @@ def mock_redis() -> MagicMock:
 # ============================================================================
 # Exchange Fixtures (CCXT)
 # ============================================================================
+
 
 @pytest.fixture
 def mock_ccxt_client() -> MagicMock:
@@ -216,8 +228,7 @@ def sample_ohlcv_data() -> list:
 def sample_ohlcv_dataframe(sample_ohlcv_data) -> pd.DataFrame:
     """Generate sample OHLCV DataFrame for testing."""
     df = pd.DataFrame(
-        sample_ohlcv_data,
-        columns=["timestamp", "open", "high", "low", "close", "volume"]
+        sample_ohlcv_data, columns=["timestamp", "open", "high", "low", "close", "volume"]
     )
     df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
     df.set_index("timestamp", inplace=True)
@@ -227,6 +238,7 @@ def sample_ohlcv_dataframe(sample_ohlcv_data) -> pd.DataFrame:
 # ============================================================================
 # LLM Fixtures (Claude)
 # ============================================================================
+
 
 @pytest.fixture
 def mock_anthropic_client() -> MagicMock:
@@ -260,7 +272,7 @@ def sample_llm_analysis() -> dict:
         "key_factors": [
             "Strong volume increase",
             "Breaking resistance level",
-            "Positive news sentiment"
+            "Positive news sentiment",
         ],
         "timestamp": datetime.utcnow().isoformat(),
     }
@@ -269,6 +281,7 @@ def sample_llm_analysis() -> dict:
 # ============================================================================
 # Sample Trade Data Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_trade_signal() -> dict:
@@ -311,6 +324,7 @@ def sample_executed_trade() -> dict:
 # ============================================================================
 # Market Data Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_ticker() -> dict:
@@ -357,6 +371,7 @@ def sample_orderbook() -> dict:
 # ============================================================================
 # Utility Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def freeze_time():

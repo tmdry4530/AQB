@@ -63,6 +63,7 @@ class ModelPrediction:
     Contains the predicted action, confidence scores for each class,
     feature importance for interpretability, and metadata.
     """
+
     action: Literal["LONG", "SHORT", "HOLD"]
     confidence: float  # 0-1, max probability among classes
     probability_long: float
@@ -87,6 +88,7 @@ class ModelMetrics:
     Includes standard classification metrics, trading-specific metrics,
     and statistical confidence intervals.
     """
+
     accuracy: float
     precision: float
     recall: float
@@ -246,14 +248,11 @@ class FeatureEngineer:
             bb_range = features["bb_upper"] - features["bb_lower"]
             features["bb_width"] = bb_range
             features["bb_percent"] = (
-                (features["bb_middle"] - features["bb_lower"]) / bb_range
-                if bb_range > 0 else 0.5
+                (features["bb_middle"] - features["bb_lower"]) / bb_range if bb_range > 0 else 0.5
             )
 
         if "macd_value" in features and "macd_signal_value" in features:
-            features["macd_histogram"] = (
-                features["macd_value"] - features["macd_signal_value"]
-            )
+            features["macd_histogram"] = features["macd_value"] - features["macd_signal_value"]
 
         return features
 
@@ -263,8 +262,8 @@ class FeatureEngineer:
             "llm_sentiment": float(llm_analysis.get("sentiment", 0.0)),
             "llm_confidence": float(llm_analysis.get("confidence", 0.5)),
             "llm_sentiment_confidence_product": (
-                float(llm_analysis.get("sentiment", 0.0)) *
-                float(llm_analysis.get("confidence", 0.5))
+                float(llm_analysis.get("sentiment", 0.0))
+                * float(llm_analysis.get("confidence", 0.5))
             ),
         }
 
@@ -280,9 +279,7 @@ class FeatureEngineer:
         features = {
             "fear_greed_index": float(market_context.get("fear_greed_index", 50.0)),
             "funding_rate": float(market_context.get("funding_rate", 0.0)),
-            "open_interest_change": float(
-                market_context.get("open_interest_change_pct", 0.0)
-            ),
+            "open_interest_change": float(market_context.get("open_interest_change_pct", 0.0)),
         }
 
         # Normalized fear & greed (0-100 to -1 to 1)
@@ -315,8 +312,7 @@ class FeatureEngineer:
             recent_volume = price_data["volume"].iloc[-5:].mean()
             historical_volume = price_data["volume"].iloc[-20:].mean()
             features["volume_ratio"] = (
-                recent_volume / historical_volume
-                if historical_volume > 0 else 1.0
+                recent_volume / historical_volume if historical_volume > 0 else 1.0
             )
 
         # Volatility (using close prices)
@@ -440,8 +436,11 @@ class XGBoostValidator:
 
         # Split data
         X_train, X_val, y_train, y_val = train_test_split(
-            X, y, test_size=validation_split, random_state=self.config.random_state,
-            stratify=y if len(y) > 100 else None  # Stratify if enough samples
+            X,
+            y,
+            test_size=validation_split,
+            random_state=self.config.random_state,
+            stratify=y if len(y) > 100 else None,  # Stratify if enough samples
         )
 
         # Fit scaler on training data
@@ -503,10 +502,7 @@ class XGBoostValidator:
         # Confusion matrix and classification report
         cm = confusion_matrix(y, y_pred).tolist()
         cr = classification_report(
-            y, y_pred,
-            target_names=self.class_names,
-            output_dict=True,
-            zero_division=0
+            y, y_pred, target_names=self.class_names, output_dict=True, zero_division=0
         )
 
         return ModelMetrics(
@@ -528,13 +524,10 @@ class XGBoostValidator:
 
         X_scaled = self.scaler.transform(X)
 
-        cv_scores = cross_val_score(
-            self.model, X_scaled, y, cv=5, scoring="accuracy"
-        )
+        cv_scores = cross_val_score(self.model, X_scaled, y, cv=5, scoring="accuracy")
 
         self.logger.info(
-            f"CV Scores: {cv_scores}, "
-            f"Mean: {cv_scores.mean():.3f} (+/- {cv_scores.std() * 2:.3f})"
+            f"CV Scores: {cv_scores}, Mean: {cv_scores.mean():.3f} (+/- {cv_scores.std() * 2:.3f})"
         )
 
     def predict(self, features: pd.DataFrame) -> ModelPrediction:
@@ -592,14 +585,11 @@ class XGBoostValidator:
 
         # Create dict of feature name -> importance
         importance_dict = {
-            name: float(score)
-            for name, score in zip(self.feature_names, importance_scores)
+            name: float(score) for name, score in zip(self.feature_names, importance_scores)
         }
 
         # Sort by importance
-        return dict(
-            sorted(importance_dict.items(), key=lambda x: x[1], reverse=True)
-        )
+        return dict(sorted(importance_dict.items(), key=lambda x: x[1], reverse=True))
 
     def save_model(self, path: str, version: str | None = None):
         """
@@ -628,7 +618,9 @@ class XGBoostValidator:
             "version": self.model_version,
             "trained_at": self.trained_at.isoformat() if self.trained_at else None,
             "training_metrics": self.training_metrics.to_dict() if self.training_metrics else None,
-            "validation_metrics": self.validation_metrics.to_dict() if self.validation_metrics else None,
+            "validation_metrics": self.validation_metrics.to_dict()
+            if self.validation_metrics
+            else None,
         }
 
         joblib.dump(model_data, f"{path}.pkl")
@@ -672,9 +664,7 @@ class XGBoostValidator:
         self.model_version = model_data["version"]
 
         trained_at_str = model_data.get("trained_at")
-        self.trained_at = (
-            datetime.fromisoformat(trained_at_str) if trained_at_str else None
-        )
+        self.trained_at = datetime.fromisoformat(trained_at_str) if trained_at_str else None
 
         # Restore config
         config_dict = model_data.get("config", {})
@@ -690,8 +680,7 @@ class XGBoostValidator:
             self.validation_metrics = ModelMetrics(**validation_metrics_dict)
 
         self.logger.info(
-            f"Model loaded from {path} (version: {self.model_version}, "
-            f"trained: {self.trained_at})"
+            f"Model loaded from {path} (version: {self.model_version}, trained: {self.trained_at})"
         )
 
     def get_metrics(self) -> ModelMetrics | None:
@@ -821,9 +810,9 @@ def calculate_ensemble_confidence(
     }
 
     ensemble_confidence = (
-        weights["ml"] * ml_prediction.confidence +
-        weights["llm"] * llm_confidence +
-        weights["technical"] * technical_agreement
+        weights["ml"] * ml_prediction.confidence
+        + weights["llm"] * llm_confidence
+        + weights["technical"] * technical_agreement
     )
 
     return ensemble_confidence

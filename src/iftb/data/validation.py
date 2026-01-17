@@ -34,6 +34,7 @@ class DataQualityReport:
         issues: List of human-readable issue descriptions
         is_acceptable: Whether the data quality meets minimum standards
     """
+
     total_rows: int
     valid_rows: int
     missing_candles: int
@@ -85,7 +86,7 @@ class OHLCVValidator:
         outlier_zscore_threshold: float = 4.0,
         max_single_candle_change: float = 0.20,
         volume_outlier_multiplier: float = 10.0,
-        min_quality_score: float = 95.0
+        min_quality_score: float = 95.0,
     ):
         """
         Initialize the OHLCV validator with configuration parameters.
@@ -207,7 +208,7 @@ class OHLCVValidator:
             duplicate_timestamps=duplicate_timestamps,
             quality_score=quality_score,
             issues=issues,
-            is_acceptable=is_acceptable
+            is_acceptable=is_acceptable,
         )
 
         logger.info(
@@ -469,7 +470,7 @@ def calculate_data_statistics(df: pd.DataFrame) -> dict:
             "time_range": (None, None),
             "price_stats": {},
             "volume_stats": {},
-            "completeness": 0.0
+            "completeness": 0.0,
         }
 
     # Ensure timestamp is datetime
@@ -487,7 +488,7 @@ def calculate_data_statistics(df: pd.DataFrame) -> dict:
             "max": float(df_copy[col].max()),
             "median": float(df_copy[col].median()),
             "q25": float(df_copy[col].quantile(0.25)),
-            "q75": float(df_copy[col].quantile(0.75))
+            "q75": float(df_copy[col].quantile(0.75)),
         }
 
     # Calculate volume statistics
@@ -499,7 +500,7 @@ def calculate_data_statistics(df: pd.DataFrame) -> dict:
         "median": float(df_copy["volume"].median()),
         "total": float(df_copy["volume"].sum()),
         "q25": float(df_copy["volume"].quantile(0.25)),
-        "q75": float(df_copy["volume"].quantile(0.75))
+        "q75": float(df_copy["volume"].quantile(0.75)),
     }
 
     # Calculate completeness (percentage of non-null values)
@@ -510,7 +511,7 @@ def calculate_data_statistics(df: pd.DataFrame) -> dict:
     # Time range
     time_range = (
         df_copy["timestamp"].min().isoformat() if pd.notna(df_copy["timestamp"].min()) else None,
-        df_copy["timestamp"].max().isoformat() if pd.notna(df_copy["timestamp"].max()) else None
+        df_copy["timestamp"].max().isoformat() if pd.notna(df_copy["timestamp"].max()) else None,
     )
 
     # Calculate time interval statistics
@@ -521,7 +522,7 @@ def calculate_data_statistics(df: pd.DataFrame) -> dict:
             "mean_seconds": time_diffs.mean().total_seconds(),
             "median_seconds": time_diffs.median().total_seconds(),
             "min_seconds": time_diffs.min().total_seconds(),
-            "max_seconds": time_diffs.max().total_seconds()
+            "max_seconds": time_diffs.max().total_seconds(),
         }
 
     return {
@@ -530,5 +531,5 @@ def calculate_data_statistics(df: pd.DataFrame) -> dict:
         "price_stats": price_stats,
         "volume_stats": volume_stats,
         "completeness": float(completeness),
-        "interval_stats": interval_stats
+        "interval_stats": interval_stats,
     }

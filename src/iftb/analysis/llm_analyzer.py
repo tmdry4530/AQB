@@ -168,9 +168,7 @@ class LLMVetoSystem:
     3. Direction conflict: Block if sentiment conflicts with trade direction
     """
 
-    def should_veto_trade(
-        self, analysis: LLMAnalysis, trade_direction: str
-    ) -> tuple[bool, str]:
+    def should_veto_trade(self, analysis: LLMAnalysis, trade_direction: str) -> tuple[bool, str]:
         """
         Determine if a trade should be vetoed based on LLM analysis.
 
@@ -496,9 +494,7 @@ Consider all factors: news sentiment, market metrics, and timing."""
             logger.error("failed_to_parse_response", error=str(e), response=str(response))
             raise ValueError(f"Failed to parse Claude response: {e}")
 
-    def _create_fallback_analysis(
-        self, mode: FallbackMode, symbol: str
-    ) -> LLMAnalysis:
+    def _create_fallback_analysis(self, mode: FallbackMode, symbol: str) -> LLMAnalysis:
         """
         Create fallback analysis when API is unavailable.
 
@@ -574,9 +570,7 @@ Consider all factors: news sentiment, market metrics, and timing."""
             RuntimeError: If API fails and no fallback is configured
         """
         # Generate cache key
-        cache_key = self._generate_cache_key(
-            symbol, news_messages, market_context, current_price
-        )
+        cache_key = self._generate_cache_key(symbol, news_messages, market_context, current_price)
 
         # Check cache first
         if self._cache:
@@ -667,7 +661,7 @@ Consider all factors: news sentiment, market metrics, and timing."""
 
                 # Calculate backoff
                 backoff = min(
-                    self.INITIAL_BACKOFF * (2 ** attempt),
+                    self.INITIAL_BACKOFF * (2**attempt),
                     self.MAX_BACKOFF,
                 )
 
@@ -702,9 +696,7 @@ Consider all factors: news sentiment, market metrics, and timing."""
         # Should never reach here
         raise RuntimeError("LLM API failed after all retries")
 
-    async def analyze_news_urgency(
-        self, news: NewsMessage
-    ) -> tuple[bool, str]:
+    async def analyze_news_urgency(self, news: NewsMessage) -> tuple[bool, str]:
         """
         Analyze if a news message requires urgent action.
 

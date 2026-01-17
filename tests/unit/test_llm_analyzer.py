@@ -347,9 +347,7 @@ class TestLLMAnalyzer:
         assert analyzer.max_tokens == 1000
         assert analyzer._consecutive_errors == 0
 
-    def test_generate_cache_key(
-        self, analyzer, sample_news_messages, sample_market_context
-    ):
+    def test_generate_cache_key(self, analyzer, sample_news_messages, sample_market_context):
         """Test cache key generation."""
         key1 = analyzer._generate_cache_key(
             "BTCUSDT", sample_news_messages, sample_market_context, 50000.0
@@ -368,9 +366,7 @@ class TestLLMAnalyzer:
         )
         assert key1 != key3
 
-    def test_build_analysis_prompt(
-        self, analyzer, sample_news_messages, sample_market_context
-    ):
+    def test_build_analysis_prompt(self, analyzer, sample_news_messages, sample_market_context):
         """Test prompt building."""
         prompt = analyzer._build_analysis_prompt(
             "BTCUSDT", sample_news_messages, sample_market_context, 50000.0
@@ -429,17 +425,13 @@ class TestLLMAnalyzer:
     def test_create_fallback_analysis(self, analyzer):
         """Test fallback analysis creation."""
         # Conservative mode
-        analysis1 = analyzer._create_fallback_analysis(
-            FallbackMode.CONSERVATIVE, "BTCUSDT"
-        )
+        analysis1 = analyzer._create_fallback_analysis(FallbackMode.CONSERVATIVE, "BTCUSDT")
         assert analysis1.sentiment == SentimentScore.NEUTRAL
         assert analysis1.confidence == 0.3
         assert not analysis1.should_veto
 
         # Veto all mode
-        analysis2 = analyzer._create_fallback_analysis(
-            FallbackMode.VETO_ALL, "BTCUSDT"
-        )
+        analysis2 = analyzer._create_fallback_analysis(FallbackMode.VETO_ALL, "BTCUSDT")
         assert analysis2.sentiment == SentimentScore.VERY_BEARISH
         assert analysis2.confidence == 1.0
         assert analysis2.should_veto
@@ -460,9 +452,7 @@ class TestLLMAnalyzer:
         ]
         mock_response.usage = Usage(input_tokens=120, output_tokens=60)
 
-        with patch.object(
-            analyzer._client.messages, "create", return_value=mock_response
-        ):
+        with patch.object(analyzer._client.messages, "create", return_value=mock_response):
             analysis = await analyzer.analyze_market(
                 symbol="BTCUSDT",
                 news_messages=sample_news_messages,
@@ -512,16 +502,12 @@ class TestLLMAnalyzer:
     async def test_analyze_news_urgency(self, analyzer, sample_news_messages):
         """Test news urgency analysis."""
         # Already urgent
-        is_urgent, reason = await analyzer.analyze_news_urgency(
-            sample_news_messages[1]
-        )
+        is_urgent, reason = await analyzer.analyze_news_urgency(sample_news_messages[1])
         assert is_urgent
         assert "breaking" in reason.lower()
 
         # Not urgent
-        is_urgent, reason = await analyzer.analyze_news_urgency(
-            sample_news_messages[0]
-        )
+        is_urgent, reason = await analyzer.analyze_news_urgency(sample_news_messages[0])
         assert not is_urgent
 
     @pytest.mark.asyncio

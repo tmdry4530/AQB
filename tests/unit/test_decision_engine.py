@@ -344,9 +344,7 @@ class TestRiskManager:
         result = risk_manager.check_consecutive_losses(sample_trade_history_winning)
         assert result is True
 
-    def test_check_consecutive_losses_exceeded(
-        self, risk_manager, sample_trade_history_losing
-    ):
+    def test_check_consecutive_losses_exceeded(self, risk_manager, sample_trade_history_losing):
         """Test consecutive losses check - exceeded."""
         result = risk_manager.check_consecutive_losses(sample_trade_history_losing)
         assert result is False

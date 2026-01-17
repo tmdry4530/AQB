@@ -207,9 +207,7 @@ class TestTelegramNewsCollector:
         summary = collector.get_news_summary()
         assert "No recent news messages available" in summary
 
-    def test_get_news_summary_with_messages(
-        self, collector: TelegramNewsCollector
-    ) -> None:
+    def test_get_news_summary_with_messages(self, collector: TelegramNewsCollector) -> None:
         """Test generating summary with messages."""
         # Add test messages
         msg1 = NewsMessage(
@@ -288,9 +286,7 @@ class TestTelegramNewsCollector:
         assert collector.message_count == 1
 
     @pytest.mark.asyncio
-    async def test_handle_message_with_callback(
-        self, collector: TelegramNewsCollector
-    ) -> None:
+    async def test_handle_message_with_callback(self, collector: TelegramNewsCollector) -> None:
         """Test handling message with urgent callback."""
         callback_called = False
         callback_message = None
@@ -320,9 +316,7 @@ class TestTelegramNewsCollector:
         assert callback_message.is_urgent
 
     @pytest.mark.asyncio
-    async def test_handle_message_callback_error(
-        self, collector: TelegramNewsCollector
-    ) -> None:
+    async def test_handle_message_callback_error(self, collector: TelegramNewsCollector) -> None:
         """Test handling message when callback raises error."""
 
         async def failing_callback(msg: NewsMessage) -> None:

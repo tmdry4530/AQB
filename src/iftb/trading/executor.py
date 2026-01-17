@@ -88,6 +88,7 @@ class Order:
         exchange_order_id: Exchange-specific order ID (optional)
         error_message: Error message if order failed (optional)
     """
+
     id: str
     symbol: str
     side: Literal["buy", "sell"]
@@ -128,6 +129,7 @@ class PositionState:
         take_profit: Take-profit price (optional)
         opened_at: Position open timestamp
     """
+
     symbol: str
     side: Literal["long", "short"]
     entry_price: float
@@ -163,6 +165,7 @@ class ExecutionRequest:
         order_type: Order type (default: market)
         reason: Decision rationale (optional)
     """
+
     action: Literal["long", "short", "close"]
     symbol: str
     amount: float
@@ -274,7 +277,9 @@ class PaperTrader:
         ```
     """
 
-    def __init__(self, initial_balance: float = 10000.0, maker_fee: float = 0.0002, taker_fee: float = 0.0004):
+    def __init__(
+        self, initial_balance: float = 10000.0, maker_fee: float = 0.0002, taker_fee: float = 0.0004
+    ):
         """
         Initialize paper trader.
 
@@ -470,8 +475,9 @@ class PaperTrader:
             # Update existing position or close
             position = self.positions[symbol]
 
-            if (position.side == "long" and order.side == "sell") or \
-               (position.side == "short" and order.side == "buy"):
+            if (position.side == "long" and order.side == "sell") or (
+                position.side == "short" and order.side == "buy"
+            ):
                 # Closing position
                 if order.filled_amount >= position.amount:
                     # Full close
@@ -493,9 +499,9 @@ class PaperTrader:
                 # Adding to position (average entry price)
                 total_amount = position.amount + order.filled_amount
                 position.entry_price = (
-                    (position.entry_price * position.amount +
-                     order.filled_price * order.filled_amount) / total_amount
-                )
+                    position.entry_price * position.amount
+                    + order.filled_price * order.filled_amount
+                ) / total_amount
                 position.amount = total_amount
 
                 logger.info(
@@ -546,13 +552,9 @@ class PaperTrader:
 
             # Calculate unrealized PnL
             if position.side == "long":
-                position.unrealized_pnl = (
-                    (current_price - position.entry_price) * position.amount
-                )
+                position.unrealized_pnl = (current_price - position.entry_price) * position.amount
             else:  # short
-                position.unrealized_pnl = (
-                    (position.entry_price - current_price) * position.amount
-                )
+                position.unrealized_pnl = (position.entry_price - current_price) * position.amount
 
 
 # =============================================================================
@@ -938,7 +940,9 @@ class LiveExecutor:
                 # Update order with result
                 order.exchange_order_id = result["id"]
                 order.status = "filled" if result.get("status") == "closed" else "pending"
-                order.filled_price = float(result.get("average", 0)) if result.get("average") else None
+                order.filled_price = (
+                    float(result.get("average", 0)) if result.get("average") else None
+                )
                 order.filled_amount = float(result.get("filled", 0))
                 order.fee = float(result.get("fee", {}).get("cost", 0))
 
@@ -973,7 +977,7 @@ class LiveExecutor:
                 )
 
                 if attempt < self.max_retries - 1:
-                    await asyncio.sleep(1 * (2 ** attempt))  # Exponential backoff
+                    await asyncio.sleep(1 * (2**attempt))  # Exponential backoff
                     continue
 
             except Exception as e:
@@ -1015,7 +1019,9 @@ class LiveExecutor:
         if order.type == "limit" and (order.price is None or order.price <= 0):
             raise ValueError("Limit orders require valid price")
 
-        if order.type in ["stop_loss", "take_profit"] and (order.stop_price is None or order.stop_price <= 0):
+        if order.type in ["stop_loss", "take_profit"] and (
+            order.stop_price is None or order.stop_price <= 0
+        ):
             raise ValueError("Stop orders require valid stop price")
 
         # Get market limits
@@ -1318,9 +1324,7 @@ class OrderExecutor:
         balance = await self._get_balance()
         positions = await self._get_all_positions()
 
-        total_position_value = sum(
-            pos.amount * pos.current_price for pos in positions
-        )
+        total_position_value = sum(pos.amount * pos.current_price for pos in positions)
         total_unrealized_pnl = sum(pos.unrealized_pnl for pos in positions)
         total_equity = balance + total_unrealized_pnl
 
@@ -1348,9 +1352,7 @@ class OrderExecutor:
             raise ValueError(f"Invalid amount: {decision.amount}")
 
         if decision.leverage > self.max_leverage:
-            raise ValueError(
-                f"Leverage {decision.leverage} exceeds maximum {self.max_leverage}"
-            )
+            raise ValueError(f"Leverage {decision.leverage} exceeds maximum {self.max_leverage}")
 
         if decision.stop_loss and decision.entry_price:
             if decision.action == "long" and decision.stop_loss >= decision.entry_price:
@@ -1374,6 +1376,7 @@ class OrderExecutor:
         if self.paper_mode:
             # Get current price for paper trading
             from iftb.data import fetch_latest_ticker
+
             ticker = await fetch_latest_ticker(symbol)
 
             order = Order(

@@ -42,6 +42,7 @@ class IndicatorResult:
         strength: Signal strength from 0 (weak) to 1 (strong)
         timestamp: Calculation timestamp
     """
+
     name: str
     value: float | dict
     signal: SignalType
@@ -62,6 +63,7 @@ class CompositeSignal:
         individual_signals: Dictionary of individual indicator results
         timestamp: Signal generation timestamp
     """
+
     overall_signal: SignalType
     confidence: float
     bullish_indicators: int
@@ -101,8 +103,9 @@ class TechnicalAnalyzer:
         """Precompute commonly used values for efficiency."""
         self.data["hl2"] = (self.data["high"] + self.data["low"]) / 2
         self.data["hlc3"] = (self.data["high"] + self.data["low"] + self.data["close"]) / 3
-        self.data["ohlc4"] = (self.data["open"] + self.data["high"] +
-                              self.data["low"] + self.data["close"]) / 4
+        self.data["ohlc4"] = (
+            self.data["open"] + self.data["high"] + self.data["low"] + self.data["close"]
+        ) / 4
 
     # ==================== RSI ====================
 
@@ -141,7 +144,7 @@ class TechnicalAnalyzer:
             value=float(current_rsi),
             signal=signal,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== MACD ====================
@@ -191,11 +194,11 @@ class TechnicalAnalyzer:
             value={
                 "macd": float(current_macd),
                 "signal": float(current_signal),
-                "histogram": float(current_hist)
+                "histogram": float(current_hist),
             },
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== Bollinger Bands ====================
@@ -244,11 +247,11 @@ class TechnicalAnalyzer:
                 "middle": float(current_sma),
                 "lower": float(current_lower),
                 "bandwidth": float(bandwidth),
-                "position": float(position)
+                "position": float(position),
             },
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== ATR ====================
@@ -286,13 +289,10 @@ class TechnicalAnalyzer:
 
         return IndicatorResult(
             name="ATR",
-            value={
-                "atr": float(current_atr),
-                "volatility_ratio": float(volatility_ratio)
-            },
+            value={"atr": float(current_atr), "volatility_ratio": float(volatility_ratio)},
             signal=signal_type,
             strength=strength,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== ADX ====================
@@ -355,17 +355,18 @@ class TechnicalAnalyzer:
             value={
                 "adx": float(current_adx),
                 "plus_di": float(current_plus_di),
-                "minus_di": float(current_minus_di)
+                "minus_di": float(current_minus_di),
             },
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== Stochastic Oscillator ====================
 
-    def calculate_stochastic(self, k_period: int = 14, d_period: int = 3,
-                            smooth_k: int = 3) -> IndicatorResult:
+    def calculate_stochastic(
+        self, k_period: int = 14, d_period: int = 3, smooth_k: int = 3
+    ) -> IndicatorResult:
         """Calculate Stochastic Oscillator.
 
         Stochastic shows momentum and identifies overbought/oversold conditions.
@@ -407,13 +408,10 @@ class TechnicalAnalyzer:
 
         return IndicatorResult(
             name="Stochastic",
-            value={
-                "k": float(current_k),
-                "d": float(current_d)
-            },
+            value={"k": float(current_k), "d": float(current_d)},
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== CCI ====================
@@ -452,7 +450,7 @@ class TechnicalAnalyzer:
             value=float(current_cci),
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== Williams %R ====================
@@ -490,7 +488,7 @@ class TechnicalAnalyzer:
             value=float(current_wr),
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== OBV ====================
@@ -512,23 +510,28 @@ class TechnicalAnalyzer:
         # Signal based on OBV vs SMA
         if current_obv > current_obv_sma:
             signal_type = "BULLISH"
-            strength = min(abs(current_obv - current_obv_sma) / current_obv_sma, 1.0) if current_obv_sma != 0 else 0.5
+            strength = (
+                min(abs(current_obv - current_obv_sma) / current_obv_sma, 1.0)
+                if current_obv_sma != 0
+                else 0.5
+            )
         elif current_obv < current_obv_sma:
             signal_type = "BEARISH"
-            strength = min(abs(current_obv - current_obv_sma) / current_obv_sma, 1.0) if current_obv_sma != 0 else 0.5
+            strength = (
+                min(abs(current_obv - current_obv_sma) / current_obv_sma, 1.0)
+                if current_obv_sma != 0
+                else 0.5
+            )
         else:
             signal_type = "NEUTRAL"
             strength = 0.5
 
         return IndicatorResult(
             name="OBV",
-            value={
-                "obv": float(current_obv),
-                "obv_sma": float(current_obv_sma)
-            },
+            value={"obv": float(current_obv), "obv_sma": float(current_obv_sma)},
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== VWAP ====================
@@ -565,17 +568,18 @@ class TechnicalAnalyzer:
             value={
                 "vwap": float(current_vwap),
                 "price": float(current_close),
-                "diff_pct": float(diff_pct)
+                "diff_pct": float(diff_pct),
             },
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== Ichimoku Cloud ====================
 
-    def calculate_ichimoku(self, tenkan: int = 9, kijun: int = 26,
-                          senkou: int = 52) -> IndicatorResult:
+    def calculate_ichimoku(
+        self, tenkan: int = 9, kijun: int = 26, senkou: int = 52
+    ) -> IndicatorResult:
         """Calculate Ichimoku Cloud.
 
         Ichimoku provides support/resistance levels and trend direction.
@@ -593,19 +597,18 @@ class TechnicalAnalyzer:
         close = self.data["close"]
 
         # Tenkan-sen (Conversion Line)
-        tenkan_sen = (high.rolling(window=tenkan).max() +
-                     low.rolling(window=tenkan).min()) / 2
+        tenkan_sen = (high.rolling(window=tenkan).max() + low.rolling(window=tenkan).min()) / 2
 
         # Kijun-sen (Base Line)
-        kijun_sen = (high.rolling(window=kijun).max() +
-                    low.rolling(window=kijun).min()) / 2
+        kijun_sen = (high.rolling(window=kijun).max() + low.rolling(window=kijun).min()) / 2
 
         # Senkou Span A (Leading Span A)
         senkou_span_a = ((tenkan_sen + kijun_sen) / 2).shift(kijun)
 
         # Senkou Span B (Leading Span B)
-        senkou_span_b = ((high.rolling(window=senkou).max() +
-                         low.rolling(window=senkou).min()) / 2).shift(kijun)
+        senkou_span_b = (
+            (high.rolling(window=senkou).max() + low.rolling(window=senkou).min()) / 2
+        ).shift(kijun)
 
         # Chikou Span (Lagging Span)
         chikou_span = close.shift(-kijun)
@@ -656,11 +659,11 @@ class TechnicalAnalyzer:
                 "senkou_span_a": float(current_senkou_a),
                 "senkou_span_b": float(current_senkou_b),
                 "cloud_top": float(cloud_top),
-                "cloud_bottom": float(cloud_bottom)
+                "cloud_bottom": float(cloud_bottom),
             },
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== Fibonacci Retracement ====================
@@ -690,7 +693,7 @@ class TechnicalAnalyzer:
             "0.5": swing_high - (diff * 0.5),
             "0.618": swing_high - (diff * 0.618),
             "0.786": swing_high - (diff * 0.786),
-            "1.0": swing_low
+            "1.0": swing_low,
         }
 
         current_close = self.data["close"].iloc[-1]
@@ -719,11 +722,11 @@ class TechnicalAnalyzer:
                 "closest_level": closest_level[0],
                 "distance_pct": float(distance_pct),
                 "swing_high": float(swing_high),
-                "swing_low": float(swing_low)
+                "swing_low": float(swing_low),
             },
             signal=signal_type,
             strength=strength,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== EMA Cross ====================
@@ -779,11 +782,11 @@ class TechnicalAnalyzer:
                 "ema_slow": float(current_slow),
                 "diff_pct": float(diff_pct),
                 "crossed_up": crossed_up,
-                "crossed_down": crossed_down
+                "crossed_down": crossed_down,
             },
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== Volume Profile ====================
@@ -806,8 +809,9 @@ class TechnicalAnalyzer:
         price_bins = np.linspace(price_min, price_max, bins + 1)
 
         # Assign each row to a bin
-        self.data["price_bin"] = pd.cut(self.data["close"], bins=price_bins,
-                                        labels=False, include_lowest=True)
+        self.data["price_bin"] = pd.cut(
+            self.data["close"], bins=price_bins, labels=False, include_lowest=True
+        )
 
         # Calculate volume per bin
         volume_profile = self.data.groupby("price_bin")["volume"].sum()
@@ -850,11 +854,11 @@ class TechnicalAnalyzer:
                 "poc_price": float(poc_price),
                 "value_area_high": float(value_area_high),
                 "value_area_low": float(value_area_low),
-                "current_vs_poc": float((current_close - poc_price) / poc_price * 100)
+                "current_vs_poc": float((current_close - poc_price) / poc_price * 100),
             },
             signal=signal_type,
             strength=float(strength),
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== Composite Analysis ====================
@@ -879,7 +883,7 @@ class TechnicalAnalyzer:
             "Ichimoku": self.calculate_ichimoku(),
             "Fibonacci": self.calculate_fibonacci(),
             "EMA_Cross": self.calculate_ema_cross(),
-            "Volume_Profile": self.calculate_volume_profile()
+            "Volume_Profile": self.calculate_volume_profile(),
         }
 
         return indicators
@@ -937,7 +941,7 @@ class TechnicalAnalyzer:
             bearish_indicators=bearish_count,
             neutral_indicators=neutral_count,
             individual_signals=indicators,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     # ==================== Helper Methods ====================
@@ -977,8 +981,9 @@ class TechnicalAnalyzer:
 
         return trend, float(strength)
 
-    def find_support_resistance(self, window: int = 20,
-                               tolerance: float = 0.02) -> dict[str, list[float]]:
+    def find_support_resistance(
+        self, window: int = 20, tolerance: float = 0.02
+    ) -> dict[str, list[float]]:
         """Find support and resistance levels.
 
         Args:
@@ -1021,5 +1026,5 @@ class TechnicalAnalyzer:
 
         return {
             "support": sorted(support_levels)[-5:],  # Keep top 5
-            "resistance": sorted(resistance_levels)[-5:]  # Keep top 5
+            "resistance": sorted(resistance_levels)[-5:],  # Keep top 5
         }

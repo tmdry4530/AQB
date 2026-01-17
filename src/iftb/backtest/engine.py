@@ -49,6 +49,7 @@ logger = get_logger(__name__)
 @dataclass
 class BacktestConfig:
     """Configuration for backtest execution."""
+
     symbol: str
     start_date: datetime
     end_date: datetime
@@ -65,6 +66,7 @@ class BacktestConfig:
 @dataclass
 class BacktestTrade:
     """Record of a single backtest trade."""
+
     entry_time: datetime
     exit_time: datetime
     symbol: str
@@ -82,6 +84,7 @@ class BacktestTrade:
 @dataclass
 class BacktestMetrics:
     """Comprehensive backtest performance metrics."""
+
     # Basic metrics
     total_trades: int = 0
     winning_trades: int = 0
@@ -153,6 +156,7 @@ class BacktestMetrics:
 @dataclass
 class BacktestResult:
     """Complete backtest results."""
+
     config: BacktestConfig
     metrics: BacktestMetrics
     trades: list[BacktestTrade]
@@ -246,7 +250,7 @@ class BacktestEngine:
         # Main backtest loop
         for i in range(self.config.warmup_periods, len(data)):
             # Get data window for analysis
-            window = data.iloc[i - self.config.warmup_periods:i + 1].copy()
+            window = data.iloc[i - self.config.warmup_periods : i + 1].copy()
             current_bar = data.iloc[i]
             current_time = current_bar["timestamp"]
             current_price = float(current_bar["close"])
@@ -257,16 +261,12 @@ class BacktestEngine:
 
             # Check stop-loss and take-profit
             if self.current_position:
-                exit_triggered = await self._check_exit_conditions(
-                    current_bar, current_time
-                )
+                exit_triggered = await self._check_exit_conditions(current_bar, current_time)
                 if exit_triggered:
                     continue
 
             # Generate signals and make decision
-            decision = await self._generate_decision(
-                window, current_price, current_time
-            )
+            decision = await self._generate_decision(window, current_price, current_time)
             self.decisions.append(decision)
 
             # Execute decision
@@ -375,8 +375,9 @@ class BacktestEngine:
         """Execute a trading decision."""
         # Close existing position if different direction
         if self.current_position:
-            if (decision.action == "LONG" and self.current_position.side == "short") or \
-               (decision.action == "SHORT" and self.current_position.side == "long"):
+            if (decision.action == "LONG" and self.current_position.side == "short") or (
+                decision.action == "SHORT" and self.current_position.side == "long"
+            ):
                 await self._close_position(current_price, current_time, "signal")
 
         # Open new position if not already in one
@@ -433,7 +434,11 @@ class BacktestEngine:
 
         # Check stop-loss
         if self.current_position.stop_loss:
-            if (self.current_position.side == "long" and low <= self.current_position.stop_loss) or (self.current_position.side == "short" and high >= self.current_position.stop_loss):
+            if (
+                self.current_position.side == "long" and low <= self.current_position.stop_loss
+            ) or (
+                self.current_position.side == "short" and high >= self.current_position.stop_loss
+            ):
                 await self._close_position(
                     self.current_position.stop_loss, current_time, "stop_loss"
                 )
@@ -441,7 +446,11 @@ class BacktestEngine:
 
         # Check take-profit
         if self.current_position.take_profit:
-            if (self.current_position.side == "long" and high >= self.current_position.take_profit) or (self.current_position.side == "short" and low <= self.current_position.take_profit):
+            if (
+                self.current_position.side == "long" and high >= self.current_position.take_profit
+            ) or (
+                self.current_position.side == "short" and low <= self.current_position.take_profit
+            ):
                 await self._close_position(
                     self.current_position.take_profit, current_time, "take_profit"
                 )
@@ -498,19 +507,21 @@ class BacktestEngine:
         self.trades.append(trade)
 
         # Update trade history for risk manager
-        self.trade_history.append(TradeHistory(
-            symbol=self.config.symbol,
-            action="LONG" if self.current_position.side == "long" else "SHORT",
-            entry_price=self.current_position.entry_price,
-            exit_price=exit_price,
-            position_size=self.current_position.amount,
-            leverage=self.current_position.leverage,
-            pnl=pnl,
-            pnl_pct=pnl_pct,
-            entry_time=self.current_position.opened_at,
-            exit_time=exit_time,
-            win=pnl > 0,
-        ))
+        self.trade_history.append(
+            TradeHistory(
+                symbol=self.config.symbol,
+                action="LONG" if self.current_position.side == "long" else "SHORT",
+                entry_price=self.current_position.entry_price,
+                exit_price=exit_price,
+                position_size=self.current_position.amount,
+                leverage=self.current_position.leverage,
+                pnl=pnl,
+                pnl_pct=pnl_pct,
+                entry_time=self.current_position.opened_at,
+                exit_time=exit_time,
+                win=pnl > 0,
+            )
+        )
 
         logger.debug(
             "backtest_position_closed",
@@ -532,14 +543,12 @@ class BacktestEngine:
 
         if self.current_position.side == "long":
             self.current_position.unrealized_pnl = (
-                (current_price - self.current_position.entry_price) *
-                self.current_position.amount
-            )
+                current_price - self.current_position.entry_price
+            ) * self.current_position.amount
         else:
             self.current_position.unrealized_pnl = (
-                (self.current_position.entry_price - current_price) *
-                self.current_position.amount
-            )
+                self.current_position.entry_price - current_price
+            ) * self.current_position.amount
 
     def _calculate_equity(self, current_price: float) -> float:
         """Calculate current equity (balance + unrealized PnL)."""
@@ -581,8 +590,8 @@ class BacktestEngine:
             if duration_days > 0:
                 years = duration_days / 365
                 metrics.annualized_return = (
-                    (1 + metrics.total_return_pct) ** (1 / years) - 1
-                ) if years > 0 else 0
+                    ((1 + metrics.total_return_pct) ** (1 / years) - 1) if years > 0 else 0
+                )
 
         # Drawdown
         equity_series = pd.Series([e[1] for e in self.equity_history])

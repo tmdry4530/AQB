@@ -97,7 +97,9 @@ async def demo_aggregator():
         print(f"Errors: {len(context.errors)}")
 
         if context.fear_greed:
-            print(f"\nFear & Greed: {context.fear_greed.value} ({context.fear_greed.classification})")
+            print(
+                f"\nFear & Greed: {context.fear_greed.value} ({context.fear_greed.classification})"
+            )
         else:
             print("\nFear & Greed: Not available")
 
@@ -112,7 +114,9 @@ async def demo_aggregator():
             print("Open Interest: Not available")
 
         if context.long_short:
-            print(f"Long/Short: {context.long_short.long_ratio:.2%} / {context.long_short.short_ratio:.2%}")
+            print(
+                f"Long/Short: {context.long_short.long_ratio:.2%} / {context.long_short.short_ratio:.2%}"
+            )
         else:
             print("Long/Short: Not available")
 

@@ -104,7 +104,9 @@ async def example_fetch_funding_rate():
 
         print(f"\nFunding Rate for {funding.symbol}:")
         print(f"  Current Rate:      {funding.rate * 100:.4f}%")
-        print(f"  Next Funding Time: {datetime.fromtimestamp(funding.next_funding_time / 1000).isoformat()}")
+        print(
+            f"  Next Funding Time: {datetime.fromtimestamp(funding.next_funding_time / 1000).isoformat()}"
+        )
 
         # Interpret funding rate
         if funding.rate > 0:
@@ -243,7 +245,9 @@ async def example_parallel_fetching():
 
         print("\nResults:")
         for ticker in tickers:
-            print(f"  {ticker.symbol:12s} | Last: {ticker.last:12,.2f} | 24h Vol: {ticker.volume_24h:12,.2f}")
+            print(
+                f"  {ticker.symbol:12s} | Last: {ticker.last:12,.2f} | 24h Vol: {ticker.volume_24h:12,.2f}"
+            )
 
 
 async def main():

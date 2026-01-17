@@ -109,12 +109,16 @@ async def example_veto_system():
     veto_system = LLMVetoSystem()
 
     # Scenario 1: Bullish analysis, long trade
-    analysis1 = type("Analysis", (), {
-        "sentiment": SentimentScore.BULLISH,
-        "confidence": 0.8,
-        "should_veto": False,
-        "veto_reason": None,
-    })()
+    analysis1 = type(
+        "Analysis",
+        (),
+        {
+            "sentiment": SentimentScore.BULLISH,
+            "confidence": 0.8,
+            "should_veto": False,
+            "veto_reason": None,
+        },
+    )()
 
     should_veto, reason = veto_system.should_veto_trade(analysis1, "long")
     print("\nScenario 1: Bullish sentiment, Long trade")
@@ -122,12 +126,16 @@ async def example_veto_system():
     print(f"  Reason: {reason if reason else 'No veto'}")
 
     # Scenario 2: Bearish analysis, long trade (conflict)
-    analysis2 = type("Analysis", (), {
-        "sentiment": SentimentScore.BEARISH,
-        "confidence": 0.7,
-        "should_veto": False,
-        "veto_reason": None,
-    })()
+    analysis2 = type(
+        "Analysis",
+        (),
+        {
+            "sentiment": SentimentScore.BEARISH,
+            "confidence": 0.7,
+            "should_veto": False,
+            "veto_reason": None,
+        },
+    )()
 
     should_veto, reason = veto_system.should_veto_trade(analysis2, "long")
     print("\nScenario 2: Bearish sentiment, Long trade (conflict)")
@@ -135,12 +143,16 @@ async def example_veto_system():
     print(f"  Reason: {reason}")
 
     # Scenario 3: Low confidence
-    analysis3 = type("Analysis", (), {
-        "sentiment": SentimentScore.NEUTRAL,
-        "confidence": 0.2,
-        "should_veto": False,
-        "veto_reason": None,
-    })()
+    analysis3 = type(
+        "Analysis",
+        (),
+        {
+            "sentiment": SentimentScore.NEUTRAL,
+            "confidence": 0.2,
+            "should_veto": False,
+            "veto_reason": None,
+        },
+    )()
 
     should_veto, reason = veto_system.should_veto_trade(analysis3, "long")
     print("\nScenario 3: Low confidence")

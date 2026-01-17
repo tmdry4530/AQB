@@ -428,6 +428,7 @@ WARNINGS_TOTAL = Counter(
 # Metrics Manager
 # =============================================================================
 
+
 class MetricsManager:
     """
     Centralized metrics management for IFTB.
@@ -448,10 +449,12 @@ class MetricsManager:
         self._server_started = False
 
         # Set system info
-        SYSTEM_INFO.info({
-            "version": "1.0.0",
-            "mode": "paper",  # Will be updated on start
-        })
+        SYSTEM_INFO.info(
+            {
+                "version": "1.0.0",
+                "mode": "paper",  # Will be updated on start
+            }
+        )
 
     def start_server(self, mode: str = "paper") -> None:
         """
@@ -463,10 +466,12 @@ class MetricsManager:
         if self._server_started:
             return
 
-        SYSTEM_INFO.info({
-            "version": "1.0.0",
-            "mode": mode,
-        })
+        SYSTEM_INFO.info(
+            {
+                "version": "1.0.0",
+                "mode": mode,
+            }
+        )
 
         start_http_server(self.port, registry=REGISTRY)
         self._server_started = True
@@ -757,6 +762,7 @@ class MetricsManager:
 # Context Managers
 # =============================================================================
 
+
 @asynccontextmanager
 async def measure_latency(histogram: Histogram, labels: dict):
     """
@@ -767,6 +773,7 @@ async def measure_latency(histogram: Histogram, labels: dict):
             await execute_order()
     """
     import time
+
     start = time.perf_counter()
     try:
         yield

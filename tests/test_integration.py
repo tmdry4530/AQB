@@ -12,7 +12,7 @@ import pytest
 # Skip if imports fail (missing dependencies)
 pytestmark = pytest.mark.skipif(
     True,  # Set to False when ready to run tests
-    reason="Integration tests require all dependencies"
+    reason="Integration tests require all dependencies",
 )
 
 
@@ -28,14 +28,16 @@ class TestTechnicalAnalyzer:
         ohlcv_data = []
         base_price = 50000.0
         for i in range(100):
-            ohlcv_data.append(OHLCVBar(
-                timestamp=datetime.now(UTC),
-                open=base_price + i * 10,
-                high=base_price + i * 10 + 50,
-                low=base_price + i * 10 - 50,
-                close=base_price + i * 10 + 25,
-                volume=1000.0 + i * 10,
-            ))
+            ohlcv_data.append(
+                OHLCVBar(
+                    timestamp=datetime.now(UTC),
+                    open=base_price + i * 10,
+                    high=base_price + i * 10 + 50,
+                    low=base_price + i * 10 - 50,
+                    close=base_price + i * 10 + 25,
+                    volume=1000.0 + i * 10,
+                )
+            )
 
         analyzer = TechnicalAnalyzer()
         signal = analyzer.analyze(ohlcv_data)
@@ -235,17 +237,19 @@ class TestDataIntegration:
 
         # Create mock exchange client
         mock_client = MagicMock(spec=ExchangeClient)
-        mock_client.fetch_ohlcv = AsyncMock(return_value=[
-            OHLCVBar(
-                timestamp=datetime.now(UTC),
-                open=50000.0,
-                high=50100.0,
-                low=49900.0,
-                close=50050.0,
-                volume=1000.0,
-            )
-            for _ in range(100)
-        ])
+        mock_client.fetch_ohlcv = AsyncMock(
+            return_value=[
+                OHLCVBar(
+                    timestamp=datetime.now(UTC),
+                    open=50000.0,
+                    high=50100.0,
+                    low=49900.0,
+                    close=50050.0,
+                    volume=1000.0,
+                )
+                for _ in range(100)
+            ]
+        )
 
         ohlcv = await mock_client.fetch_ohlcv("BTCUSDT", "1h", 100)
         assert len(ohlcv) == 100
@@ -270,14 +274,16 @@ class TestEndToEnd:
         base_price = 50000.0
         for i in range(100):
             # Create uptrend
-            ohlcv_data.append(OHLCVBar(
-                timestamp=datetime.now(UTC),
-                open=base_price + i * 100,
-                high=base_price + i * 100 + 150,
-                low=base_price + i * 100 - 50,
-                close=base_price + i * 100 + 120,
-                volume=1000.0 + i * 50,
-            ))
+            ohlcv_data.append(
+                OHLCVBar(
+                    timestamp=datetime.now(UTC),
+                    open=base_price + i * 100,
+                    high=base_price + i * 100 + 150,
+                    low=base_price + i * 100 - 50,
+                    close=base_price + i * 100 + 120,
+                    volume=1000.0 + i * 50,
+                )
+            )
 
         # 2. Generate technical signal
         analyzer = TechnicalAnalyzer()
@@ -319,6 +325,7 @@ class TestComponentImports:
             ExchangeClient,
             OHLCVBar,
         )
+
         assert ExchangeClient is not None
         assert OHLCVBar is not None
 
@@ -328,6 +335,7 @@ class TestComponentImports:
             LLMAnalyzer,
             TechnicalAnalyzer,
         )
+
         assert TechnicalAnalyzer is not None
         assert LLMAnalyzer is not None
 
@@ -337,6 +345,7 @@ class TestComponentImports:
             DecisionEngine,
             OrderExecutor,
         )
+
         assert DecisionEngine is not None
         assert OrderExecutor is not None
 

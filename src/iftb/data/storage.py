@@ -259,9 +259,7 @@ class TradeModel(Base):
 
     __table_args__ = (
         CheckConstraint("side IN ('long', 'short')", name="check_trade_side"),
-        CheckConstraint(
-            "action IN ('open', 'close', 'liquidated')", name="check_trade_action"
-        ),
+        CheckConstraint("action IN ('open', 'close', 'liquidated')", name="check_trade_action"),
         Index("idx_trades_symbol", "symbol"),
         Index("idx_trades_exchange", "exchange"),
         Index("idx_trades_entry_time", "entry_time"),
@@ -300,9 +298,7 @@ class PositionModel(Base):
 
     __table_args__ = (
         CheckConstraint("side IN ('long', 'short')", name="check_position_side"),
-        CheckConstraint(
-            "status IN ('open', 'closed', 'liquidated')", name="check_position_status"
-        ),
+        CheckConstraint("status IN ('open', 'closed', 'liquidated')", name="check_position_status"),
         Index("idx_positions_symbol", "symbol"),
         Index("idx_positions_status", "status"),
         Index("idx_positions_exchange", "exchange"),
@@ -336,9 +332,7 @@ class LLMAnalysisLogModel(Base):
     created_at = Column(DateTime(timezone=True), default=func.now())
 
     __table_args__ = (
-        CheckConstraint(
-            "status IN ('success', 'error', 'timeout')", name="check_llm_status"
-        ),
+        CheckConstraint("status IN ('success', 'error', 'timeout')", name="check_llm_status"),
         Index("idx_llm_log_type", "analysis_type"),
         Index("idx_llm_log_symbol", "symbol"),
         Index("idx_llm_log_created", "created_at"),
@@ -940,11 +934,7 @@ class TradeRepository(BaseRepository):
             trade_id: Database ID of trade
             **kwargs: Fields to update
         """
-        stmt = (
-            update(TradeModel)
-            .where(TradeModel.id == trade_id)
-            .values(**kwargs)
-        )
+        stmt = update(TradeModel).where(TradeModel.id == trade_id).values(**kwargs)
         await self.session.execute(stmt)
         await self.session.flush()
 
@@ -976,11 +966,7 @@ class TradeRepository(BaseRepository):
         Returns:
             List of Trade objects (newest first)
         """
-        stmt = (
-            select(TradeModel)
-            .order_by(desc(TradeModel.entry_time))
-            .limit(limit)
-        )
+        stmt = select(TradeModel).order_by(desc(TradeModel.entry_time)).limit(limit)
         result = await self.session.execute(stmt)
         models = result.scalars().all()
 
@@ -1037,15 +1023,12 @@ class TradeRepository(BaseRepository):
         cutoff_date = datetime.utcnow() - timedelta(days=days)
 
         # Get closed trades
-        stmt = (
-            select(TradeModel)
-            .where(
-                and_(
-                    TradeModel.exchange == exchange,
-                    TradeModel.action == "close",
-                    TradeModel.exit_time >= cutoff_date,
-                    TradeModel.realized_pnl.isnot(None),
-                )
+        stmt = select(TradeModel).where(
+            and_(
+                TradeModel.exchange == exchange,
+                TradeModel.action == "close",
+                TradeModel.exit_time >= cutoff_date,
+                TradeModel.realized_pnl.isnot(None),
             )
         )
         result = await self.session.execute(stmt)
@@ -1074,10 +1057,16 @@ class TradeRepository(BaseRepository):
         total_trades = len(trades)
         win_count = len(winning_trades)
         loss_count = len(losing_trades)
-        win_rate = Decimal(win_count) / Decimal(total_trades) * 100 if total_trades > 0 else Decimal("0")
+        win_rate = (
+            Decimal(win_count) / Decimal(total_trades) * 100 if total_trades > 0 else Decimal("0")
+        )
 
-        gross_profit = sum(t.realized_pnl for t in winning_trades) if winning_trades else Decimal("0")
-        gross_loss = abs(sum(t.realized_pnl for t in losing_trades)) if losing_trades else Decimal("0")
+        gross_profit = (
+            sum(t.realized_pnl for t in winning_trades) if winning_trades else Decimal("0")
+        )
+        gross_loss = (
+            abs(sum(t.realized_pnl for t in losing_trades)) if losing_trades else Decimal("0")
+        )
         net_pnl = sum(t.realized_pnl for t in trades)
         total_fees = sum(t.fee for t in trades)
 
@@ -1160,13 +1149,10 @@ class PositionRepository(BaseRepository):
         Returns:
             List of Position objects
         """
-        stmt = (
-            select(PositionModel)
-            .where(
-                and_(
-                    PositionModel.exchange == exchange,
-                    PositionModel.status == "open",
-                )
+        stmt = select(PositionModel).where(
+            and_(
+                PositionModel.exchange == exchange,
+                PositionModel.status == "open",
             )
         )
         result = await self.session.execute(stmt)
@@ -1189,14 +1175,11 @@ class PositionRepository(BaseRepository):
         Returns:
             Position object or None if not found
         """
-        stmt = (
-            select(PositionModel)
-            .where(
-                and_(
-                    PositionModel.symbol == symbol,
-                    PositionModel.exchange == exchange,
-                    PositionModel.status == "open",
-                )
+        stmt = select(PositionModel).where(
+            and_(
+                PositionModel.symbol == symbol,
+                PositionModel.exchange == exchange,
+                PositionModel.status == "open",
             )
         )
         result = await self.session.execute(stmt)
@@ -1262,11 +1245,7 @@ class PositionRepository(BaseRepository):
         Args:
             position_id: Database ID of position to close
         """
-        stmt = (
-            update(PositionModel)
-            .where(PositionModel.id == position_id)
-            .values(status="closed")
-        )
+        stmt = update(PositionModel).where(PositionModel.id == position_id).values(status="closed")
         await self.session.execute(stmt)
         await self.session.flush()
 

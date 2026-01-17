@@ -62,6 +62,7 @@ class LogConfig:
         environment: Environment name (dev, staging, prod)
         app_version: Application version string
     """
+
     level: str = "INFO"
     format: Literal["json", "pretty"] = "pretty"
     file_path: str | None = None
@@ -73,9 +74,7 @@ class LogConfig:
     app_version: str = "1.0.0"
 
 
-def add_app_info(
-    logger: logging.Logger, method_name: str, event_dict: EventDict
-) -> EventDict:
+def add_app_info(logger: logging.Logger, method_name: str, event_dict: EventDict) -> EventDict:
     """Add application-level information to log entries.
 
     Args:
@@ -92,9 +91,7 @@ def add_app_info(
     return event_dict
 
 
-def add_trade_context(
-    logger: logging.Logger, method_name: str, event_dict: EventDict
-) -> EventDict:
+def add_trade_context(logger: logging.Logger, method_name: str, event_dict: EventDict) -> EventDict:
     """Add trade-specific context to log entries.
 
     Pulls context from the global context storage and adds it to the log entry.
@@ -114,9 +111,7 @@ def add_trade_context(
     return event_dict
 
 
-def filter_sensitive(
-    logger: logging.Logger, method_name: str, event_dict: EventDict
-) -> EventDict:
+def filter_sensitive(logger: logging.Logger, method_name: str, event_dict: EventDict) -> EventDict:
     """Filter and mask sensitive information from logs.
 
     Masks API keys, passwords, tokens, and other sensitive data.
@@ -185,9 +180,7 @@ def add_log_level_name(
     return event_dict
 
 
-def truncate_strings(
-    logger: logging.Logger, method_name: str, event_dict: EventDict
-) -> EventDict:
+def truncate_strings(logger: logging.Logger, method_name: str, event_dict: EventDict) -> EventDict:
     """Truncate long string values to prevent log bloat.
 
     Args:
@@ -263,13 +256,15 @@ def setup_logging(config: LogConfig) -> None:
 
     # Add caller info if requested
     if config.include_caller_info:
-        processors.append(structlog.processors.CallsiteParameterAdder(
-            [
-                structlog.processors.CallsiteParameter.FILENAME,
-                structlog.processors.CallsiteParameter.LINENO,
-                structlog.processors.CallsiteParameter.FUNC_NAME,
-            ]
-        ))
+        processors.append(
+            structlog.processors.CallsiteParameterAdder(
+                [
+                    structlog.processors.CallsiteParameter.FILENAME,
+                    structlog.processors.CallsiteParameter.LINENO,
+                    structlog.processors.CallsiteParameter.FUNC_NAME,
+                ]
+            )
+        )
 
     # Add stack info on exceptions
     processors.append(structlog.processors.StackInfoRenderer())
@@ -313,19 +308,23 @@ def setup_logging(config: LogConfig) -> None:
             file_processors.append(structlog.processors.TimeStamper(fmt="iso"))
 
         if config.include_caller_info:
-            file_processors.append(structlog.processors.CallsiteParameterAdder(
-                [
-                    structlog.processors.CallsiteParameter.FILENAME,
-                    structlog.processors.CallsiteParameter.LINENO,
-                    structlog.processors.CallsiteParameter.FUNC_NAME,
-                ]
-            ))
+            file_processors.append(
+                structlog.processors.CallsiteParameterAdder(
+                    [
+                        structlog.processors.CallsiteParameter.FILENAME,
+                        structlog.processors.CallsiteParameter.LINENO,
+                        structlog.processors.CallsiteParameter.FUNC_NAME,
+                    ]
+                )
+            )
 
-        file_processors.extend([
-            structlog.processors.StackInfoRenderer(),
-            structlog.processors.format_exc_info,
-            structlog.processors.JSONRenderer(),
-        ])
+        file_processors.extend(
+            [
+                structlog.processors.StackInfoRenderer(),
+                structlog.processors.format_exc_info,
+                structlog.processors.JSONRenderer(),
+            ]
+        )
 
         # Get root logger and add file handler
         root_logger = logging.getLogger()

@@ -79,9 +79,7 @@ class RedisClient:
         db: Redis database number
     """
 
-    def __init__(
-        self, host: str, port: int, password: str | None = None, db: int = 0
-    ) -> None:
+    def __init__(self, host: str, port: int, password: str | None = None, db: int = 0) -> None:
         """
         Initialize Redis client.
 
@@ -165,9 +163,7 @@ class RedisClient:
             logger.error("redis_get_error", key=key, error=str(e))
             raise
 
-    async def set(
-        self, key: str, value: str, ttl: int | None = None
-    ) -> None:
+    async def set(self, key: str, value: str, ttl: int | None = None) -> None:
         """
         Set key-value pair with optional TTL.
 
@@ -259,9 +255,7 @@ class RedisClient:
             logger.error("json_decode_error", key=key, error=str(e))
             raise
 
-    async def set_json(
-        self, key: str, value: dict[str, Any], ttl: int | None = None
-    ) -> None:
+    async def set_json(self, key: str, value: dict[str, Any], ttl: int | None = None) -> None:
         """
         Set JSON value with optional TTL.
 
@@ -274,9 +268,7 @@ class RedisClient:
             RedisError: If Redis operation fails
         """
         try:
-            json_str = orjson.dumps(
-                value, default=_serialize_datetime
-            ).decode("utf-8")
+            json_str = orjson.dumps(value, default=_serialize_datetime).decode("utf-8")
             await self.set(key, json_str, ttl)
         except (TypeError, orjson.JSONEncodeError) as e:
             logger.error("json_encode_error", key=key, error=str(e))
@@ -384,7 +376,8 @@ class OHLCVCache:
                         bar_data = orjson.loads(value)
                         # Ensure we only pass fields that OHLCVBar expects
                         bar_fields = {
-                            k: v for k, v in bar_data.items()
+                            k: v
+                            for k, v in bar_data.items()
                             if k in {"timestamp", "open", "high", "low", "close", "volume"}
                         }
                         bars.append(OHLCVBar(**bar_fields))
@@ -453,9 +446,7 @@ class OHLCVCache:
                 error=str(e),
             )
 
-    async def get_latest_bar(
-        self, symbol: str, timeframe: str
-    ) -> OHLCVBar | None:
+    async def get_latest_bar(self, symbol: str, timeframe: str) -> OHLCVBar | None:
         """
         Get the most recent cached bar.
 
@@ -485,9 +476,7 @@ class OHLCVCache:
 
             cursor = 0
             while True:
-                cursor, keys = await self.client._client.scan(
-                    cursor, match=pattern, count=1000
-                )
+                cursor, keys = await self.client._client.scan(cursor, match=pattern, count=1000)
                 if keys:
                     await self.client._client.delete(*keys)
                 if cursor == 0:
@@ -541,16 +530,12 @@ class MarketDataCache:
             try:
                 return Ticker(**data)
             except ValueError as e:
-                logger.warning(
-                    "invalid_ticker_data", symbol=symbol, error=str(e)
-                )
+                logger.warning("invalid_ticker_data", symbol=symbol, error=str(e))
                 return None
 
         return None
 
-    async def set_ticker(
-        self, symbol: str, ticker: Ticker, ttl: int = 10
-    ) -> None:
+    async def set_ticker(self, symbol: str, ticker: Ticker, ttl: int = 10) -> None:
         """
         Cache ticker data.
 
@@ -582,16 +567,12 @@ class MarketDataCache:
             try:
                 return float(value)
             except ValueError as e:
-                logger.warning(
-                    "invalid_funding_rate", symbol=symbol, error=str(e)
-                )
+                logger.warning("invalid_funding_rate", symbol=symbol, error=str(e))
                 return None
 
         return None
 
-    async def set_funding_rate(
-        self, symbol: str, rate: float, ttl: int = 60
-    ) -> None:
+    async def set_funding_rate(self, symbol: str, rate: float, ttl: int = 60) -> None:
         """
         Cache funding rate.
 
@@ -619,9 +600,7 @@ class MarketDataCache:
             try:
                 # Parse timestamp if it's a string
                 if "timestamp" in data and isinstance(data["timestamp"], str):
-                    data["timestamp"] = datetime.fromisoformat(
-                        data["timestamp"]
-                    )
+                    data["timestamp"] = datetime.fromisoformat(data["timestamp"])
                 return FearGreedData(**data)
             except (ValueError, TypeError) as e:
                 logger.warning("invalid_fear_greed_data", error=str(e))
@@ -629,9 +608,7 @@ class MarketDataCache:
 
         return None
 
-    async def set_fear_greed(
-        self, data: FearGreedData, ttl: int = 300
-    ) -> None:
+    async def set_fear_greed(self, data: FearGreedData, ttl: int = 300) -> None:
         """
         Cache Fear & Greed index data.
 
@@ -677,9 +654,7 @@ class LLMCache:
         """
         return hashlib.sha256(input_data.encode()).hexdigest()
 
-    async def get_analysis(
-        self, analysis_type: str, input_hash: str
-    ) -> dict[str, Any] | None:
+    async def get_analysis(self, analysis_type: str, input_hash: str) -> dict[str, Any] | None:
         """
         Retrieve cached LLM analysis.
 
@@ -694,9 +669,7 @@ class LLMCache:
         data = await self.client.get_json(key)
 
         if data:
-            logger.debug(
-                "llm_cache_hit", analysis_type=analysis_type, input_hash=input_hash[:16]
-            )
+            logger.debug("llm_cache_hit", analysis_type=analysis_type, input_hash=input_hash[:16])
 
         return data
 
@@ -753,9 +726,7 @@ class CacheManager:
         ```
     """
 
-    def __init__(
-        self, host: str, port: int, password: str | None = None, db: int = 0
-    ) -> None:
+    def __init__(self, host: str, port: int, password: str | None = None, db: int = 0) -> None:
         """
         Initialize cache manager.
 

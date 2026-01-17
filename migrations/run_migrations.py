@@ -50,7 +50,9 @@ def run_migrations_sync(db_url: str):
     try:
         import psycopg2
     except ImportError:
-        print_colored("Error: psycopg2 not installed. Install with: pip install psycopg2-binary", "red")
+        print_colored(
+            "Error: psycopg2 not installed. Install with: pip install psycopg2-binary", "red"
+        )
         sys.exit(1)
 
     print_colored("=== IFTB Trading Bot Database Migrations (Sync) ===", "green")
@@ -215,19 +217,16 @@ Examples:
 
   # Using sync mode (psycopg2) - default
   python run_migrations.py --db-url postgresql://user:pass@localhost/aqb
-        """
+        """,
     )
 
     parser.add_argument(
         "--db-url",
         help="Database connection URL (default: from DATABASE_URL env var)",
-        default=None
+        default=None,
     )
     parser.add_argument(
-        "--async",
-        dest="use_async",
-        action="store_true",
-        help="Use asyncpg instead of psycopg2"
+        "--async", dest="use_async", action="store_true", help="Use asyncpg instead of psycopg2"
     )
 
     args = parser.parse_args()
@@ -236,6 +235,7 @@ Examples:
     db_url = args.db_url
     if not db_url:
         import os
+
         db_url = os.getenv("DATABASE_URL")
 
     if not db_url:

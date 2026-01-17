@@ -404,9 +404,7 @@ class TestStructuredLogging:
 
     def test_timestamp_included(self, temp_log_file):
         """Test that timestamp is included when configured."""
-        config = LogConfig(
-            format="json", file_path=temp_log_file, include_timestamp=True
-        )
+        config = LogConfig(format="json", file_path=temp_log_file, include_timestamp=True)
         setup_logging(config)
         logger = get_logger(__name__)
 
@@ -418,9 +416,7 @@ class TestStructuredLogging:
 
     def test_caller_info_included(self, temp_log_file):
         """Test that caller info is included when configured."""
-        config = LogConfig(
-            format="json", file_path=temp_log_file, include_caller_info=True
-        )
+        config = LogConfig(format="json", file_path=temp_log_file, include_caller_info=True)
         setup_logging(config)
         logger = get_logger(__name__)
 
@@ -457,9 +453,7 @@ class TestStringTruncation:
 
     def test_long_string_truncation(self, temp_log_file):
         """Test that long strings are truncated."""
-        config = LogConfig(
-            format="json", file_path=temp_log_file, max_string_length=100
-        )
+        config = LogConfig(format="json", file_path=temp_log_file, max_string_length=100)
         setup_logging(config)
         logger = get_logger(__name__)
 

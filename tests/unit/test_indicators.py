@@ -35,12 +35,15 @@ class TestTechnicalIndicators:
 
         pytest.skip("Indicator module not yet implemented")
 
-    @pytest.mark.parametrize("period,expected_nan_count", [
-        (5, 4),
-        (10, 9),
-        (20, 19),
-        (50, 49),
-    ])
+    @pytest.mark.parametrize(
+        "period,expected_nan_count",
+        [
+            (5, 4),
+            (10, 9),
+            (20, 19),
+            (50, 49),
+        ],
+    )
     def test_sma_different_periods(self, sample_ohlcv_dataframe, period, expected_nan_count):
         """Test SMA with different periods produces correct NaN count."""
         # TODO: Implement when indicators module is ready
@@ -240,9 +243,9 @@ class TestIndicatorPropertyBased:
         prices=st.lists(
             st.floats(min_value=1.0, max_value=100000.0, allow_nan=False, allow_infinity=False),
             min_size=50,
-            max_size=500
+            max_size=500,
         ),
-        period=st.integers(min_value=2, max_value=30)
+        period=st.integers(min_value=2, max_value=30),
     )
     def test_sma_properties(self, prices, period):
         """Test SMA properties hold for any valid input."""
@@ -266,7 +269,7 @@ class TestIndicatorPropertyBased:
         prices=st.lists(
             st.floats(min_value=1.0, max_value=100000.0, allow_nan=False, allow_infinity=False),
             min_size=30,
-            max_size=200
+            max_size=200,
         )
     )
     def test_rsi_bounded_property(self, prices):

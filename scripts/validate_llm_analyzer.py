@@ -256,6 +256,7 @@ def main() -> int:
         if filepath.exists():
             try:
                 import py_compile
+
                 py_compile.compile(str(filepath), doraise=True)
                 print_check(True, f"{name}: Syntax valid")
                 passed_checks += 1

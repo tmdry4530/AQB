@@ -24,9 +24,9 @@ from iftb.trading import TradeHistory, create_decision_engine
 async def main():
     """Demonstrate complete decision-making workflow."""
 
-    print("="*80)
+    print("=" * 80)
     print("IFTB Trading Decision Engine - Example Usage")
-    print("="*80)
+    print("=" * 80)
     print()
 
     # =========================================================================
@@ -45,14 +45,16 @@ async def main():
     print("2. Preparing analysis inputs...")
 
     # Create mock OHLCV data for technical analysis
-    ohlcv_data = pd.DataFrame({
-        "timestamp": pd.date_range(end=datetime.now(), periods=100, freq="1h"),
-        "open": [50000 + i * 10 for i in range(100)],
-        "high": [50100 + i * 10 for i in range(100)],
-        "low": [49900 + i * 10 for i in range(100)],
-        "close": [50050 + i * 10 for i in range(100)],
-        "volume": [1000000] * 100,
-    })
+    ohlcv_data = pd.DataFrame(
+        {
+            "timestamp": pd.date_range(end=datetime.now(), periods=100, freq="1h"),
+            "open": [50000 + i * 10 for i in range(100)],
+            "high": [50100 + i * 10 for i in range(100)],
+            "low": [49900 + i * 10 for i in range(100)],
+            "close": [50050 + i * 10 for i in range(100)],
+            "volume": [1000000] * 100,
+        }
+    )
 
     # Technical Analysis Signal
     technical_analyzer = TechnicalAnalyzer(ohlcv_data)
@@ -160,9 +162,9 @@ async def main():
     )
 
     print()
-    print("="*80)
+    print("=" * 80)
     print("TRADING DECISION")
-    print("="*80)
+    print("=" * 80)
     print(f"Symbol:         {decision.symbol}")
     print(f"Action:         {decision.action}")
     print(f"Confidence:     {decision.confidence:.2%}")
@@ -185,9 +187,9 @@ async def main():
     # =========================================================================
 
     if decision.action != "HOLD" and not decision.vetoed:
-        print("="*80)
+        print("=" * 80)
         print("POSITION DETAILS")
-        print("="*80)
+        print("=" * 80)
 
         position_value = account_balance * decision.position_size
         position_with_leverage = position_value * decision.leverage
@@ -199,8 +201,12 @@ async def main():
         take_profit_distance = abs(decision.take_profit - decision.entry_price)
         take_profit_pct = (take_profit_distance / decision.entry_price) * 100
 
-        risk_amount = position_value * (stop_loss_distance / decision.entry_price) * decision.leverage
-        reward_amount = position_value * (take_profit_distance / decision.entry_price) * decision.leverage
+        risk_amount = (
+            position_value * (stop_loss_distance / decision.entry_price) * decision.leverage
+        )
+        reward_amount = (
+            position_value * (take_profit_distance / decision.entry_price) * decision.leverage
+        )
         risk_reward_ratio = reward_amount / risk_amount if risk_amount > 0 else 0
 
         print(f"Capital Allocation:     ${position_value:.2f} ({decision.position_size:.2%})")
@@ -220,9 +226,9 @@ async def main():
     # 5. Demonstrate Risk Controls
     # =========================================================================
 
-    print("="*80)
+    print("=" * 80)
     print("RISK CONTROLS STATUS")
-    print("="*80)
+    print("=" * 80)
 
     # Circuit Breaker
     print(f"Circuit Breaker:        {'ACTIVE' if engine.circuit_breaker.is_triggered else 'OK'}")
@@ -240,7 +246,7 @@ async def main():
     daily_loss_ok = engine.risk_manager.check_daily_loss_limit(current_pnl, account_balance)
     print(f"Daily Loss Limit:       {'OK' if daily_loss_ok else 'EXCEEDED'}")
     print(f"  Current PnL:          ${current_pnl:.2f}")
-    print(f"  Loss %:               {abs(current_pnl)/account_balance:.2%}")
+    print(f"  Loss %:               {abs(current_pnl) / account_balance:.2%}")
 
     # Consecutive Losses
     consecutive_ok = engine.risk_manager.check_consecutive_losses(trade_history)
@@ -254,9 +260,9 @@ async def main():
     # 6. Demonstrate Safety Features
     # =========================================================================
 
-    print("="*80)
+    print("=" * 80)
     print("SAFETY FEATURE DEMONSTRATION")
-    print("="*80)
+    print("=" * 80)
     print()
 
     # Test Kill Switch
@@ -297,9 +303,9 @@ async def main():
     print(f"  Reason: {reason}")
     print()
 
-    print("="*80)
+    print("=" * 80)
     print("EXAMPLE COMPLETE")
-    print("="*80)
+    print("=" * 80)
 
 
 if __name__ == "__main__":

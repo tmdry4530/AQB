@@ -120,7 +120,9 @@ def validate_fetcher_module():
             "download_historical",
         ]
 
-        missing_methods = [m for m in required_methods if m not in classes["HistoricalDataDownloader"]]
+        missing_methods = [
+            m for m in required_methods if m not in classes["HistoricalDataDownloader"]
+        ]
 
         if not missing_methods:
             print("   ✓ All required methods present")
@@ -161,7 +163,9 @@ def validate_fetcher_module():
     # Check 5: Async context manager
     checks_total += 1
     print("\n5. Async context manager support")
-    if "__aenter__" in classes.get("ExchangeClient", []) and "__aexit__" in classes.get("ExchangeClient", []):
+    if "__aenter__" in classes.get("ExchangeClient", []) and "__aexit__" in classes.get(
+        "ExchangeClient", []
+    ):
         print("   ✓ Async context manager methods present")
         checks_passed += 1
     else:

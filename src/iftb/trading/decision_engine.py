@@ -68,6 +68,7 @@ class TradingDecision:
         vetoed: Whether the decision was vetoed
         veto_reason: Reason for veto if applicable
     """
+
     action: Literal["LONG", "SHORT", "HOLD"]
     symbol: str
     confidence: float
@@ -101,14 +102,9 @@ class TradingDecision:
     def __repr__(self) -> str:
         """Human-readable decision summary."""
         if self.vetoed:
-            return (
-                f"TradingDecision(VETOED: {self.veto_reason})"
-            )
+            return f"TradingDecision(VETOED: {self.veto_reason})"
         if self.action == "HOLD":
-            return (
-                f"TradingDecision(HOLD for {self.symbol}, "
-                f"confidence={self.confidence:.2f})"
-            )
+            return f"TradingDecision(HOLD for {self.symbol}, confidence={self.confidence:.2f})"
         return (
             f"TradingDecision({self.action} {self.symbol}, "
             f"size={self.position_size:.2%}, leverage={self.leverage}x, "
@@ -121,6 +117,7 @@ class TradingDecision:
 @dataclass
 class TradeHistory:
     """Record of a completed trade."""
+
     symbol: str
     action: Literal["LONG", "SHORT"]
     entry_price: float
@@ -397,8 +394,9 @@ class RiskManager:
 
 class CircuitBreakerState:
     """Circuit breaker state enumeration."""
-    CLOSED = "CLOSED"        # Normal operation - all requests allowed
-    OPEN = "OPEN"            # Tripped - all requests blocked
+
+    CLOSED = "CLOSED"  # Normal operation - all requests allowed
+    OPEN = "OPEN"  # Tripped - all requests blocked
     HALF_OPEN = "HALF_OPEN"  # Testing - limited requests to test recovery
 
 
@@ -622,7 +620,10 @@ class CircuitBreaker:
         # Or spent enough time in HALF_OPEN without failures
         if self.half_open_start:
             elapsed = datetime.now(UTC) - self.half_open_start
-            if elapsed >= timedelta(hours=self.half_open_hours) and self.half_open_failure_count == 0:
+            if (
+                elapsed >= timedelta(hours=self.half_open_hours)
+                and self.half_open_failure_count == 0
+            ):
                 return True
 
         return False
@@ -709,9 +710,9 @@ class KillSwitch:
             "kill_switch_activated",
             reason=reason,
             activation_time=self.activation_time,
-            confirmation_code_hash=hashlib.sha256(
-                self._confirmation_code.encode()
-            ).hexdigest()[:8],  # Log partial hash for audit
+            confirmation_code_hash=hashlib.sha256(self._confirmation_code.encode()).hexdigest()[
+                :8
+            ],  # Log partial hash for audit
         )
 
         return self._confirmation_code
@@ -834,7 +835,8 @@ class KillSwitch:
             "active": self._active,
             "activation_time": self.activation_time.isoformat() if self.activation_time else None,
             "activation_reason": self.activation_reason,
-            "locked_out": self._lockout_until is not None and datetime.now(UTC) < self._lockout_until,
+            "locked_out": self._lockout_until is not None
+            and datetime.now(UTC) < self._lockout_until,
             "lockout_until": self._lockout_until.isoformat() if self._lockout_until else None,
             "failed_attempts": self._deactivation_attempts,
         }
@@ -1096,10 +1098,7 @@ class DecisionEngine:
         circuit_adjusted_size = confidence_adjusted_size * position_size_multiplier
 
         # Final position size (respect limits)
-        position_size = max(
-            MIN_POSITION_PCT,
-            min(circuit_adjusted_size, MAX_POSITION_PCT)
-        )
+        position_size = max(MIN_POSITION_PCT, min(circuit_adjusted_size, MAX_POSITION_PCT))
 
         # Log if in HALF_OPEN mode
         if is_half_open:
@@ -1153,14 +1152,8 @@ class DecisionEngine:
             f"Technical: {technical_signal.overall_signal} "
             f"(confidence: {technical_signal.confidence:.2f})"
         )
-        reasons.append(
-            f"LLM: {llm_analysis.sentiment} "
-            f"(confidence: {llm_analysis.confidence:.2f})"
-        )
-        reasons.append(
-            f"ML: {ml_prediction.action} "
-            f"(confidence: {ml_prediction.confidence:.2f})"
-        )
+        reasons.append(f"LLM: {llm_analysis.sentiment} (confidence: {llm_analysis.confidence:.2f})")
+        reasons.append(f"ML: {ml_prediction.action} (confidence: {ml_prediction.confidence:.2f})")
         reasons.append(f"Combined score: {combined_score:.3f}")
         reasons.append(f"Combined confidence: {combined_confidence:.2f}")
         reasons.append(f"Volatility: {volatility:.2%}")
@@ -1228,8 +1221,7 @@ class DecisionEngine:
         return 0.02 * 50000  # Rough estimate for crypto
 
     def _calculate_trade_statistics(
-        self,
-        trade_history: list[TradeHistory]
+        self, trade_history: list[TradeHistory]
     ) -> tuple[float, float, float]:
         """
         Calculate win rate and average win/loss from trade history.
@@ -1272,7 +1264,9 @@ class DecisionEngine:
                 if trade.pnl > 0:
                     peak_balance = max(peak_balance, account_balance)
 
-            current_drawdown = (peak_balance - account_balance) / peak_balance if peak_balance > 0 else 0.0
+            current_drawdown = (
+                (peak_balance - account_balance) / peak_balance if peak_balance > 0 else 0.0
+            )
             metrics["drawdown"] = max(0.0, current_drawdown)
 
         # Estimate volatility from market context (if available)

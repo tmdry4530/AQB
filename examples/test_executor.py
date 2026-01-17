@@ -198,6 +198,7 @@ async def main():
     except Exception as e:
         print(f"\nTest failed with error: {e}")
         import traceback
+
         traceback.print_exc()
 
 

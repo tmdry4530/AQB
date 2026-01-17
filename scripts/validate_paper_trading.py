@@ -74,14 +74,16 @@ def generate_mock_ohlcv(
 
         price = close_price
 
-    return pd.DataFrame({
-        "timestamp": timestamps,
-        "open": opens,
-        "high": highs,
-        "low": lows,
-        "close": closes,
-        "volume": volumes,
-    })
+    return pd.DataFrame(
+        {
+            "timestamp": timestamps,
+            "open": opens,
+            "high": highs,
+            "low": lows,
+            "close": closes,
+            "volume": volumes,
+        }
+    )
 
 
 async def run_paper_trading_validation():
@@ -163,7 +165,9 @@ async def run_paper_trading_validation():
 
         print(f"  Signal Direction: {signal.overall_signal}")
         print(f"  Confidence: {signal.confidence:.4f}")
-        print(f"  Bullish/Bearish/Neutral: {signal.bullish_indicators}/{signal.bearish_indicators}/{signal.neutral_indicators}")
+        print(
+            f"  Bullish/Bearish/Neutral: {signal.bullish_indicators}/{signal.bearish_indicators}/{signal.neutral_indicators}"
+        )
         print(f"  Indicators computed: {len(signal.individual_signals)}")
 
         if signal.overall_signal in ["BULLISH", "BEARISH", "NEUTRAL"]:
@@ -175,6 +179,7 @@ async def run_paper_trading_validation():
     except Exception as e:
         print(f"  [FAIL] Technical analysis error: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 
@@ -224,6 +229,7 @@ async def run_paper_trading_validation():
     except Exception as e:
         print(f"  [FAIL] Decision engine error: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 
@@ -270,6 +276,7 @@ async def run_paper_trading_validation():
     except Exception as e:
         print(f"  [FAIL] Paper trader error: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 
@@ -302,6 +309,7 @@ async def run_paper_trading_validation():
     except Exception as e:
         print(f"  [FAIL] Position tracking error: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 
@@ -356,6 +364,7 @@ async def run_paper_trading_validation():
     except Exception as e:
         print(f"  [FAIL] Position close error: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 
@@ -389,6 +398,7 @@ async def run_paper_trading_validation():
     except Exception as e:
         print(f"  [FAIL] Risk management error: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 
@@ -420,6 +430,7 @@ async def run_paper_trading_validation():
     except Exception as e:
         print(f"  [FAIL] Circuit breaker error: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 
@@ -478,7 +489,9 @@ async def run_paper_trading_validation():
                 account_balance=10000.0,
             )
 
-            print(f"  Iteration {i+1}: price={current_price:.2f}, signal={signal.overall_signal}, decision={decision.action}")
+            print(
+                f"  Iteration {i + 1}: price={current_price:.2f}, signal={signal.overall_signal}, decision={decision.action}"
+            )
 
             # Execute if not HOLD
             if decision.action != "HOLD" and not decision.vetoed:
@@ -528,6 +541,7 @@ async def run_paper_trading_validation():
     except Exception as e:
         print(f"  [FAIL] Full trading cycle error: {e}")
         import traceback
+
         traceback.print_exc()
         success = False
 

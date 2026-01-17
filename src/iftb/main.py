@@ -311,9 +311,7 @@ async def process_symbol(
         market_context = None
         if "external_data" in components:
             try:
-                market_context = await components["external_data"].get_market_context(
-                    symbol
-                )
+                market_context = await components["external_data"].get_market_context(symbol)
             except Exception as e:
                 logger.warning("market_context_failed", error=str(e))
 
@@ -453,9 +451,7 @@ async def main_loop(components: dict) -> None:
     }
 
     # Get minimum timeframe interval
-    min_interval = min(
-        timeframe_seconds.get(tf, 3600) for tf in settings.trading.timeframes
-    )
+    min_interval = min(timeframe_seconds.get(tf, 3600) for tf in settings.trading.timeframes)
     # Use 80% of interval to ensure we catch the new candle
     loop_interval = max(int(min_interval * 0.8), 30)
 

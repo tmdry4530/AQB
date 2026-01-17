@@ -140,26 +140,20 @@ def mock_exchange_client():
     client.exchange = MagicMock()
 
     # Mock exchange methods
-    client.exchange.create_order = AsyncMock(return_value={
-        "id": "exchange-order-123",
-        "status": "closed",
-        "average": 50000.0,
-        "filled": 0.1,
-        "fee": {"cost": 2.0},
-    })
+    client.exchange.create_order = AsyncMock(
+        return_value={
+            "id": "exchange-order-123",
+            "status": "closed",
+            "average": 50000.0,
+            "filled": 0.1,
+            "fee": {"cost": 2.0},
+        }
+    )
     client.exchange.cancel_order = AsyncMock()
     client.exchange.fetch_positions = AsyncMock(return_value=[])
     client.exchange.fetch_open_orders = AsyncMock(return_value=[])
-    client.exchange.fetch_balance = AsyncMock(return_value={
-        "USDT": {"free": 10000.0}
-    })
-    client.exchange.markets = {
-        "BTC/USDT": {
-            "limits": {
-                "amount": {"min": 0.001, "max": 1000.0}
-            }
-        }
-    }
+    client.exchange.fetch_balance = AsyncMock(return_value={"USDT": {"free": 10000.0}})
+    client.exchange.markets = {"BTC/USDT": {"limits": {"amount": {"min": 0.001, "max": 1000.0}}}}
 
     return client
 
@@ -987,9 +981,7 @@ class TestOrderExecutorDecisionExecution:
 
     @pytest.mark.asyncio
     @patch("iftb.data.fetch_latest_ticker")
-    async def test_execute_market_long_decision_paper_mode(
-        self, mock_fetch_ticker, paper_executor
-    ):
+    async def test_execute_market_long_decision_paper_mode(self, mock_fetch_ticker, paper_executor):
         """Test executing market long decision in paper mode."""
         # Mock ticker data
         mock_ticker = MagicMock()
@@ -1072,9 +1064,7 @@ class TestOrderExecutorDecisionExecution:
 
     @pytest.mark.asyncio
     @patch("iftb.data.fetch_latest_ticker")
-    async def test_execute_decision_with_stop_loss(
-        self, mock_fetch_ticker, paper_executor
-    ):
+    async def test_execute_decision_with_stop_loss(self, mock_fetch_ticker, paper_executor):
         """Test that stop-loss is set after order execution."""
         mock_ticker = MagicMock()
         mock_ticker.last = 50000.0
@@ -1095,9 +1085,7 @@ class TestOrderExecutorDecisionExecution:
 
     @pytest.mark.asyncio
     @patch("iftb.data.fetch_latest_ticker")
-    async def test_execute_decision_with_take_profit(
-        self, mock_fetch_ticker, paper_executor
-    ):
+    async def test_execute_decision_with_take_profit(self, mock_fetch_ticker, paper_executor):
         """Test that take-profit is set after order execution."""
         mock_ticker = MagicMock()
         mock_ticker.last = 50000.0
@@ -1122,9 +1110,7 @@ class TestOrderExecutorEmergencyClose:
 
     @pytest.mark.asyncio
     @patch("iftb.data.fetch_latest_ticker")
-    async def test_emergency_close_all_positions(
-        self, mock_fetch_ticker, paper_executor
-    ):
+    async def test_emergency_close_all_positions(self, mock_fetch_ticker, paper_executor):
         """Test emergency close closes all open positions."""
         mock_ticker = MagicMock()
         mock_ticker.last = 50000.0
@@ -1180,9 +1166,7 @@ class TestOrderExecutorAccountStatus:
 
     @pytest.mark.asyncio
     @patch("iftb.data.fetch_latest_ticker")
-    async def test_get_account_status_with_positions(
-        self, mock_fetch_ticker, paper_executor
-    ):
+    async def test_get_account_status_with_positions(self, mock_fetch_ticker, paper_executor):
         """Test get_account_status with open positions."""
         mock_ticker = MagicMock()
         mock_ticker.last = 50000.0
@@ -1359,9 +1343,7 @@ class TestConcurrencyAndRaceConditions:
                 amount=0.01,
                 price=50000.0 + i * 100,
             )
-            filled = await paper_trader.place_order(
-                order, current_price=50000.0 + i * 100
-            )
+            filled = await paper_trader.place_order(order, current_price=50000.0 + i * 100)
             orders.append(filled)
 
         # All should succeed

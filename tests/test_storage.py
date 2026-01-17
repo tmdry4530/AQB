@@ -12,7 +12,7 @@ import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import StaticPool
 
-from src.iftb.data.storage import (
+from iftb.data.storage import (
     Base,
     DatabaseManager,
     OHLCVBar,
@@ -269,7 +269,7 @@ async def test_trade_statistics(db_session):
             action="close",
             entry_price=Decimal("50000"),
             quantity=Decimal("0.01"),
-            entry_time=datetime.utcnow() - timedelta(hours=i+1),
+            entry_time=datetime.utcnow() - timedelta(hours=i + 1),
             exit_time=datetime.utcnow() - timedelta(hours=i),
             realized_pnl=pnl,
             fee=Decimal("1.0"),

@@ -351,9 +351,7 @@ class TelegramNewsCollector:
 
         if message.chat:
             channel_name = (
-                message.chat.title
-                or message.chat.username
-                or f"Channel_{message.chat.id}"
+                message.chat.title or message.chat.username or f"Channel_{message.chat.id}"
             )
             channel_id = message.chat.id
 
@@ -415,9 +413,7 @@ class TelegramNewsCollector:
         cutoff_time = datetime.now(UTC) - timedelta(minutes=minutes)
 
         with self._lock:
-            recent = [
-                msg for msg in self._messages if msg.timestamp >= cutoff_time
-            ]
+            recent = [msg for msg in self._messages if msg.timestamp >= cutoff_time]
 
         logger.info(
             "telegram_recent_messages_retrieved",
@@ -470,11 +466,7 @@ class TelegramNewsCollector:
             for msg in channel_messages:
                 timestamp_str = msg.timestamp.strftime("%H:%M:%S")
                 urgent_flag = "[URGENT] " if msg.is_urgent else ""
-                keywords_str = (
-                    f" (keywords: {', '.join(msg.keywords)})"
-                    if msg.keywords
-                    else ""
-                )
+                keywords_str = f" (keywords: {', '.join(msg.keywords)})" if msg.keywords else ""
 
                 lines.append(f"- {timestamp_str} {urgent_flag}{msg.text}{keywords_str}")
 

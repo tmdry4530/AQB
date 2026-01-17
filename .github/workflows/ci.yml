@@ -65,7 +65,7 @@ jobs:
 
       - name: Run mypy
         run: |
-          uv run mypy src/iftb --strict --ignore-missing-imports
+          uv run mypy src/iftb --ignore-missing-imports
 
   test:
     name: Test

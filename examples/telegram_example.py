@@ -51,9 +51,7 @@ async def main() -> None:
     logger.info("telegram_example_starting")
 
     # Create collector from settings
-    collector = await create_collector_from_settings(
-        on_urgent_message=handle_urgent_message
-    )
+    collector = await create_collector_from_settings(on_urgent_message=handle_urgent_message)
 
     try:
         async with collector:

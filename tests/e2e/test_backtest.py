@@ -20,10 +20,7 @@ class TestBacktestingEngine:
     """Test complete backtesting workflow."""
 
     async def test_simple_strategy_backtest(
-        self,
-        db_session,
-        sample_ohlcv_dataframe,
-        test_settings
+        self, db_session, sample_ohlcv_dataframe, test_settings
     ):
         """Test running a simple moving average crossover strategy."""
         # TODO: Implement when backtest engine is ready
@@ -59,10 +56,7 @@ class TestBacktestingEngine:
         pytest.skip("Backtest engine not yet implemented")
 
     async def test_backtest_with_commissions(
-        self,
-        db_session,
-        sample_ohlcv_dataframe,
-        test_settings
+        self, db_session, sample_ohlcv_dataframe, test_settings
     ):
         """Test that trading commissions are correctly applied."""
         # TODO: Implement when backtest engine is ready
@@ -90,12 +84,7 @@ class TestBacktestingEngine:
 
         pytest.skip("Backtest engine not yet implemented")
 
-    async def test_backtest_with_slippage(
-        self,
-        db_session,
-        sample_ohlcv_dataframe,
-        test_settings
-    ):
+    async def test_backtest_with_slippage(self, db_session, sample_ohlcv_dataframe, test_settings):
         """Test that slippage is correctly applied to trades."""
         # TODO: Implement when backtest engine is ready
         # from app.backtest.engine import BacktestEngine
@@ -127,11 +116,7 @@ class TestBacktestingEngine:
         pytest.skip("Backtest engine not yet implemented")
 
     async def test_backtest_generates_report(
-        self,
-        db_session,
-        sample_ohlcv_dataframe,
-        test_settings,
-        tmp_path
+        self, db_session, sample_ohlcv_dataframe, test_settings, tmp_path
     ):
         """Test that backtest generates comprehensive report."""
         # TODO: Implement when backtest engine is ready
@@ -174,10 +159,7 @@ class TestMultiStrategyBacktest:
     """Test backtesting multiple strategies for comparison."""
 
     async def test_compare_multiple_strategies(
-        self,
-        db_session,
-        sample_ohlcv_dataframe,
-        test_settings
+        self, db_session, sample_ohlcv_dataframe, test_settings
     ):
         """Test comparing performance of multiple strategies."""
         # TODO: Implement when backtest engine is ready
@@ -221,10 +203,7 @@ class TestParameterOptimization:
     """Test strategy parameter optimization."""
 
     async def test_grid_search_optimization(
-        self,
-        db_session,
-        sample_ohlcv_dataframe,
-        test_settings
+        self, db_session, sample_ohlcv_dataframe, test_settings
     ):
         """Test grid search for optimal strategy parameters."""
         # TODO: Implement when optimization is ready
@@ -262,12 +241,7 @@ class TestParameterOptimization:
 class TestWalkForwardAnalysis:
     """Test walk-forward analysis for strategy validation."""
 
-    async def test_walk_forward_validation(
-        self,
-        db_session,
-        sample_ohlcv_dataframe,
-        test_settings
-    ):
+    async def test_walk_forward_validation(self, db_session, sample_ohlcv_dataframe, test_settings):
         """Test walk-forward analysis to prevent overfitting."""
         # TODO: Implement when walk-forward is ready
         # from app.backtest.walk_forward import WalkForwardAnalyzer
@@ -298,12 +272,7 @@ class TestWalkForwardAnalysis:
 class TestLiveSimulation:
     """Test live trading simulation (paper trading)."""
 
-    async def test_paper_trading_session(
-        self,
-        db_session,
-        mock_ccxt_client,
-        test_settings
-    ):
+    async def test_paper_trading_session(self, db_session, mock_ccxt_client, test_settings):
         """Test paper trading with simulated live data."""
         # TODO: Implement when paper trading is ready
         # from app.trading.paper import PaperTradingEngine

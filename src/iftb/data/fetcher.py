@@ -72,6 +72,7 @@ class OHLCVBar:
         close: Closing price
         volume: Trading volume in base currency
     """
+
     timestamp: int
     open: float
     high: float
@@ -119,6 +120,7 @@ class Ticker:
         volume_24h: 24-hour volume in base currency
         timestamp: Unix timestamp in milliseconds
     """
+
     symbol: str
     last: float
     bid: float
@@ -167,6 +169,7 @@ class FundingRate:
         next_funding_time: Unix timestamp of next funding event in milliseconds
         timestamp: Unix timestamp in milliseconds
     """
+
     symbol: str
     rate: float
     next_funding_time: int
@@ -378,7 +381,7 @@ class ExchangeClient:
 
             except RateLimitExceeded as e:
                 last_exception = e
-                wait_time = delay * (2 ** attempt)
+                wait_time = delay * (2**attempt)
                 logger.warning(
                     "rate_limit_exceeded",
                     function=func.__name__,
@@ -393,7 +396,7 @@ class ExchangeClient:
 
             except (NetworkError, RequestTimeout, ExchangeNotAvailable) as e:
                 last_exception = e
-                wait_time = delay * (2 ** attempt)
+                wait_time = delay * (2**attempt)
                 logger.warning(
                     "network_error",
                     function=func.__name__,
@@ -426,7 +429,7 @@ class ExchangeClient:
                 )
 
                 if attempt < max_retries:
-                    await asyncio.sleep(delay * (2 ** attempt))
+                    await asyncio.sleep(delay * (2**attempt))
                     continue
 
         # All retries exhausted
@@ -552,10 +555,7 @@ class ExchangeClient:
                 break
 
             # Filter bars within range
-            filtered_bars = [
-                bar for bar in bars
-                if since <= bar.timestamp < end_ts
-            ]
+            filtered_bars = [bar for bar in bars if since <= bar.timestamp < end_ts]
 
             all_bars.extend(filtered_bars)
 

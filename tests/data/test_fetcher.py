@@ -219,9 +219,7 @@ class TestExchangeClient:
     @pytest.mark.asyncio
     async def test_retry_exhausted(self, client, mock_exchange):
         """Test that retries eventually fail."""
-        mock_exchange.fetch_ticker = AsyncMock(
-            side_effect=NetworkError("Network error")
-        )
+        mock_exchange.fetch_ticker = AsyncMock(side_effect=NetworkError("Network error"))
 
         with patch("iftb.data.fetcher.ccxt.binance", return_value=mock_exchange):
             await client.connect()
@@ -328,7 +326,8 @@ class TestHistoricalDataDownloader:
     @pytest.mark.asyncio
     async def test_resume_download(self, downloader, mock_bars, tmp_path):
         """Test resuming an incomplete download."""
-        csv_path = tmp_path / "test_resume.csv"
+        # Use the same filename that download_historical will generate
+        csv_path = tmp_path / "BTC_USDT_1h_20211220_20211221.csv"
 
         # Save first half of data
         downloader._save_to_csv(csv_path, mock_bars[:5])

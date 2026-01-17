@@ -37,10 +37,7 @@ class DatabaseSettings(BaseSettings):
             Async PostgreSQL connection string
         """
         password = self.password.get_secret_value()
-        return (
-            f"postgresql+asyncpg://{self.user}:{password}"
-            f"@{self.host}:{self.port}/{self.name}"
-        )
+        return f"postgresql+asyncpg://{self.user}:{password}@{self.host}:{self.port}/{self.name}"
 
 
 class RedisSettings(BaseSettings):
@@ -77,9 +74,7 @@ class ExchangeSettings(BaseSettings):
     api_key: SecretStr = Field(default=SecretStr(""), description="Exchange API key")
     api_secret: SecretStr = Field(default=SecretStr(""), description="Exchange API secret")
     testnet: bool = Field(default=True, description="Use testnet environment")
-    rate_limit_per_second: int = Field(
-        default=10, description="API rate limit per second"
-    )
+    rate_limit_per_second: int = Field(default=10, description="API rate limit per second")
 
     model_config = SettingsConfigDict(
         env_prefix="EXCHANGE_",
@@ -97,8 +92,9 @@ class TelegramSettings(BaseSettings):
     bot_token: SecretStr = Field(default=SecretStr(""), description="Telegram bot token")
     alert_chat_id: int = Field(default=0, description="Chat ID for alerts")
     news_channel_ids_raw: str = Field(
-        default="", alias="news_channel_ids",
-        description="News channel IDs to monitor (comma-separated)"
+        default="",
+        alias="news_channel_ids",
+        description="News channel IDs to monitor (comma-separated)",
     )
 
     @property
@@ -120,12 +116,8 @@ class TelegramSettings(BaseSettings):
 class LLMSettings(BaseSettings):
     """LLM configuration settings."""
 
-    anthropic_api_key: SecretStr = Field(
-        default=SecretStr(""), description="Anthropic API key"
-    )
-    model: str = Field(
-        default="claude-sonnet-4-20250514", description="Claude model to use"
-    )
+    anthropic_api_key: SecretStr = Field(default=SecretStr(""), description="Anthropic API key")
+    model: str = Field(default="claude-sonnet-4-20250514", description="Claude model to use")
     max_tokens: int = Field(default=1000, description="Maximum tokens per request")
     cache_ttl_seconds: int = Field(
         default=300, description="Cache TTL in seconds for LLM responses"
@@ -143,23 +135,19 @@ class TradingSettings(BaseSettings):
     """Trading configuration settings."""
 
     symbols_raw: str = Field(
-        default="BTCUSDT", alias="symbols",
+        default="BTCUSDT",
+        alias="symbols",
         description="Trading symbols to monitor (comma-separated)",
     )
     timeframes_raw: str = Field(
-        default="1h,4h,1d", alias="timeframes",
+        default="1h,4h,1d",
+        alias="timeframes",
         description="Timeframes for analysis (comma-separated)",
     )
     default_leverage: int = Field(default=1, description="Default leverage")
-    paper_trading: bool = Field(
-        default=True, description="Enable paper trading mode"
-    )
-    use_websocket: bool = Field(
-        default=False, description="Use WebSocket for real-time data"
-    )
-    initial_balance: float = Field(
-        default=10000.0, description="Initial balance for paper trading"
-    )
+    paper_trading: bool = Field(default=True, description="Enable paper trading mode")
+    use_websocket: bool = Field(default=False, description="Use WebSocket for real-time data")
+    initial_balance: float = Field(default=10000.0, description="Initial balance for paper trading")
 
     @property
     def symbols(self) -> list[str]:
@@ -188,9 +176,7 @@ class LoggingSettings(BaseSettings):
         default="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         description="Log format string",
     )
-    file_path: str | None = Field(
-        default=None, description="Optional log file path"
-    )
+    file_path: str | None = Field(default=None, description="Optional log file path")
 
     model_config = SettingsConfigDict(
         env_prefix="LOG_",
