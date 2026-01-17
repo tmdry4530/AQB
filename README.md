@@ -212,6 +212,9 @@ TRADING_DEFAULT_LEVERAGE=5
 
 # 모의거래 모드 (true 권장)
 TRADING_PAPER_MODE=true
+
+# 초기 자본금 (USD)
+TRADING_INITIAL_BALANCE=2000.0
 ```
 
 ### 전체 환경변수 목록
