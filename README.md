@@ -102,39 +102,51 @@ LLM_MODEL=claude-sonnet-4-20250514
 
 > 💡 무료 크레딧으로 시작 가능. 사용량에 따라 과금됩니다.
 
-### 3. Telegram 설정 (선택)
+### 3. Telegram 설정 (채널 데이터 수집)
 
-#### Bot Token 발급
+참여 중인 뉴스/시그널 채널의 메시지를 수집하여 시장 분석에 활용합니다.
 
-1. Telegram에서 [@BotFather](https://t.me/BotFather) 검색
-2. `/newbot` 명령어 입력
-3. 봇 이름과 username 설정
-4. 발급된 토큰 복사
-
-```env
-TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
-```
-
-#### Chat ID 확인
-
-1. 봇에게 아무 메시지 전송
-2. 브라우저에서 접속: `https://api.telegram.org/bot<TOKEN>/getUpdates`
-3. `chat.id` 값 확인
-
-```env
-TELEGRAM_ALERT_CHAT_ID=123456789
-```
-
-#### API ID/Hash (고급 기능용)
+#### API ID/Hash 발급 (필수)
 
 1. [my.telegram.org](https://my.telegram.org/apps) 접속
-2. 전화번호로 로그인
+2. 본인 전화번호로 로그인
 3. **API development tools** 선택
-4. 앱 정보 입력 후 생성
+4. 앱 정보 입력:
+   - App title: `IFTB` (자유롭게)
+   - Short name: `iftb`
+   - Platform: `Desktop`
+5. API ID와 API Hash 복사
 
 ```env
 TELEGRAM_API_ID=12345678
 TELEGRAM_API_HASH=your_api_hash_here
+```
+
+#### 채널 ID 확인
+
+모니터링할 채널의 ID를 확인하는 방법:
+
+1. [Telegram Web](https://web.telegram.org/) 접속
+2. 채널 입장 후 URL 확인: `https://web.telegram.org/k/#-1001234567890`
+3. URL의 숫자 부분이 채널 ID (`-1001234567890`)
+
+```env
+# 모니터링할 채널 ID (쉼표로 구분)
+TELEGRAM_NEWS_CHANNEL_IDS=-1001111111111,-1002222222222
+```
+
+> 💡 **팁**: 크립토 뉴스, 시그널 채널 등에 참여한 상태여야 메시지를 수집할 수 있습니다.
+
+#### Bot Token (알림 전송용, 선택)
+
+트레이딩 알림을 받고 싶다면 봇을 생성하세요:
+
+1. [@BotFather](https://t.me/BotFather)에서 `/newbot` 실행
+2. 생성된 봇과 대화 시작 후 Chat ID 확인
+
+```env
+TELEGRAM_BOT_TOKEN=1234567890:ABCdefGHIjklMNOpqrsTUVwxyz
+TELEGRAM_ALERT_CHAT_ID=123456789
 ```
 
 ### 4. 데이터베이스 설정
@@ -203,7 +215,10 @@ TRADING_PAPER_MODE=true
 | `DB_HOST` | ✅ | PostgreSQL 호스트 |
 | `DB_PASSWORD` | ✅ | PostgreSQL 비밀번호 |
 | `REDIS_HOST` | - | Redis 호스트 |
-| `TELEGRAM_BOT_TOKEN` | - | 텔레그램 알림용 |
+| `TELEGRAM_API_ID` | - | 채널 데이터 수집용 |
+| `TELEGRAM_API_HASH` | - | 채널 데이터 수집용 |
+| `TELEGRAM_NEWS_CHANNEL_IDS` | - | 모니터링할 채널 ID |
+| `TELEGRAM_BOT_TOKEN` | - | 알림 전송용 (선택) |
 | `TRADING_PAPER_MODE` | ✅ | 모의거래 모드 |
 
 ## Project Structure
