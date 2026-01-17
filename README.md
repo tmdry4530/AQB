@@ -152,14 +152,16 @@ TELEGRAM_ALERT_CHAT_ID=123456789
 
 ### 4. 데이터베이스 설정
 
+> 💡 DB/Redis 비밀번호는 **직접 설정**하는 값입니다. Docker 실행 시 지정한 비밀번호와 `.env`의 값을 동일하게 맞추세요.
+
 #### PostgreSQL
 
 ```bash
-# Docker로 빠르게 시작
+# Docker로 빠르게 시작 (비밀번호 직접 지정)
 docker run -d \
   --name iftb-postgres \
   -e POSTGRES_USER=iftb \
-  -e POSTGRES_PASSWORD=your_secure_password \
+  -e POSTGRES_PASSWORD=MySecurePass123! \
   -e POSTGRES_DB=iftb \
   -p 5432:5432 \
   postgres:15
@@ -170,23 +172,30 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=iftb
 DB_USER=iftb
-DB_PASSWORD=your_secure_password
+DB_PASSWORD=MySecurePass123!  # Docker 실행 시 지정한 비밀번호와 동일하게
 ```
 
 #### Redis
 
 ```bash
-# Docker로 빠르게 시작
+# Docker로 빠르게 시작 (비밀번호 없이)
 docker run -d \
   --name iftb-redis \
   -p 6379:6379 \
   redis:7
+
+# 비밀번호 설정 시
+docker run -d \
+  --name iftb-redis \
+  -p 6379:6379 \
+  redis:7 --requirepass MyRedisPass123!
 ```
 
 ```env
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_DB=0
+REDIS_PASSWORD=MyRedisPass123!  # 비밀번호 설정한 경우에만
 ```
 
 ### 5. 거래 설정
