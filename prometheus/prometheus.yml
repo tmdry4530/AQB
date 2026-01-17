@@ -1,0 +1,25 @@
+# Prometheus configuration for IFTB Trading Bot
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files: []
+
+scrape_configs:
+  # IFTB Trading Bot metrics
+  - job_name: 'iftb'
+    static_configs:
+      - targets: ['iftb:8000']
+    metrics_path: /metrics
+    scheme: http
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
